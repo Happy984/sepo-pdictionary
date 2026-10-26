@@ -1,13 +1,26 @@
 # Sepo Dictionary
 
 A community dictionary for WordPress. Members suggest words, meanings and corrections, and the community votes on how accurate they are. Suggestions that win the vote are merged into the entry, and every change is kept in the entry's history.
+It runs on WordPress alone. It needs no outside service and no other plugin.
+
+<p align="center">
+  <a href="https://edu.sepodesk.com/sponsor/projects-maintenance/">
+    <img src="https://img.shields.io/badge/%E2%9D%A4%20SUPPORT%20OUR%20OPEN--SOURCE%20PROJECTS-0b6b45?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Support Our Open-Source Projects" />
+  </a>
+</p>
+
+<p align="center">
+  Your support helps us maintain, improve and build open-source software for everyone.
+  <br />
+  <strong>Every contribution makes a difference. Thank you for supporting our work!</strong>
+</p>
+
 
 ![Version](https://img.shields.io/badge/version-1.2.0-0b3d33)
 ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759b)
 ![PHP](https://img.shields.io/badge/PHP-8.1%2B-777bb4)
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
 
-It runs on WordPress alone. It needs no outside service and no other plugin.
 
 ## Contents
 
