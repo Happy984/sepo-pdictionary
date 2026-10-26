@@ -1,0 +1,528 @@
+/*
+ * Sepo Dictionary — the dictionary page, entry pages and community review.
+ *
+ * Flat: borders and tints, no shadows. Colours are tokens on .sdict-scope; the
+ * script adds .sdict-dark when the page is dark, whichever theme draws it.
+ */
+
+.sdict-scope {
+  --sdict-accent: #0b3d33;
+  --sdict-on-accent: #ffffff;
+  --sdict-accent-ink: var(--sdict-accent);
+  --sdict-wash: rgba(18, 112, 92, 0.07);
+  --sdict-wash-strong: rgba(18, 112, 92, 0.14);
+  --sdict-muted: #5b6577;
+  --sdict-soft: #3f4a5a;
+  --sdict-strong: #111a17;
+  --sdict-rule: rgba(128, 128, 128, 0.24);
+  --sdict-rule-soft: rgba(128, 128, 128, 0.14);
+  --sdict-panel: rgba(128, 128, 128, 0.03);
+  --sdict-sunken: rgba(128, 128, 128, 0.07);
+  --sdict-surface: #ffffff;
+  --sdict-surface-ink: #17201d;
+  --sdict-good: #1a7f37;
+  --sdict-good-wash: rgba(26, 127, 55, 0.1);
+  --sdict-bad: #b42318;
+  --sdict-bad-wash: rgba(180, 35, 24, 0.09);
+  --sdict-warn: #9a6700;
+  --sdict-warn-wash: rgba(214, 158, 46, 0.14);
+  --sdict-info: #175cd3;
+  --sdict-info-wash: rgba(23, 92, 211, 0.09);
+  --sdict-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, Cambria, "Times New Roman", serif;
+  --sdict-phon: "Charis SIL", "Doulos SIL", "Gentium Plus", "Segoe UI", "Lucida Sans Unicode", "DejaVu Sans", system-ui, sans-serif;
+  color: inherit;
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .sdict-scope {
+    --sdict-wash: color-mix(in srgb, var(--sdict-accent) 7%, transparent);
+    --sdict-wash-strong: color-mix(in srgb, var(--sdict-accent) 14%, transparent);
+  }
+}
+.sdict-scope.sdict-dark {
+  --sdict-accent-ink: #7fd8bd;
+  --sdict-wash: rgba(127, 216, 189, 0.08);
+  --sdict-wash-strong: rgba(127, 216, 189, 0.15);
+  --sdict-text: #e9efed;
+  --sdict-muted: #b9c5c1;
+  --sdict-soft: #d5dedb;
+  --sdict-strong: #ffffff;
+  --sdict-rule: rgba(255, 255, 255, 0.15);
+  --sdict-rule-soft: rgba(255, 255, 255, 0.09);
+  --sdict-panel: rgba(255, 255, 255, 0.025);
+  --sdict-sunken: rgba(255, 255, 255, 0.06);
+  --sdict-surface: #161c1f;
+  --sdict-surface-ink: #e8ecee;
+  --sdict-good: #4fd06a;
+  --sdict-good-wash: rgba(79, 208, 106, 0.12);
+  --sdict-bad: #f47c72;
+  --sdict-bad-wash: rgba(244, 124, 114, 0.12);
+  --sdict-warn: #e3b341;
+  --sdict-warn-wash: rgba(227, 179, 65, 0.13);
+  --sdict-info: #79aaf7;
+  --sdict-info-wash: rgba(121, 170, 247, 0.12);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .sdict-scope.sdict-dark { --sdict-accent-ink: color-mix(in srgb, var(--sdict-accent) 32%, #ffffff); }
+}
+
+.sdict-scope *, .sdict-scope *::before, .sdict-scope *::after { box-sizing: border-box; }
+.sdict-scope [hidden] { display: none !important; }
+.sdict-scope :is(button, input, select, textarea) { font: inherit; letter-spacing: normal; text-transform: none; box-shadow: none; margin: 0; }
+.sdict-scope :where(h1, h2, h3, h4, p, ol, ul, li, dl, dd, figure) { margin: 0; }
+/* Theme heading, label and form styles stop at the dictionary's edge; its own classes style these. */
+.sdict-scope :where(h1, h2, h3, h4) { color: inherit; letter-spacing: normal; }
+.sdict-scope :where(label) { margin: 0; color: inherit; font-size: inherit; font-weight: inherit; }
+/* In dark mode the dictionary sets its own light text rather than inheriting a theme's softer grey. */
+.sdict-scope.sdict-dark { color: var(--sdict-text); }
+.sdict-scope a { text-decoration: none; }
+.sdict-scope :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--sdict-accent-ink); outline-offset: 2px; }
+.sdict-scope .screen-reader-text { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.sdict-icon { flex-shrink: 0; vertical-align: -2px; }
+.sdict-muted { color: var(--sdict-muted); }
+
+.sdict-wrap { max-width: 920px; margin: 0 auto; container-type: inline-size; container-name: sd; line-height: 1.55; }
+html.sdict-modal-open { overflow: hidden; }
+
+/* ---- Buttons ------------------------------------------------------------ */
+.sdict-scope .sdict-btn { box-shadow: none; text-shadow: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 15px; min-height: 40px; border-radius: 10px; border: 1px solid var(--sdict-rule); background: transparent; color: inherit; font-size: .9rem; font-weight: 600; line-height: 1.2; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background-color .12s ease, border-color .12s ease, color .12s ease; }
+.sdict-scope .sdict-btn:hover { background: var(--sdict-sunken); border-color: var(--sdict-muted); }
+.sdict-scope .sdict-btn:disabled { opacity: .55; cursor: default; }
+.sdict-scope .sdict-btn--primary { background: var(--sdict-accent); color: var(--sdict-on-accent); border-color: transparent; }
+.sdict-scope .sdict-btn--primary:hover { background: var(--sdict-accent); border-color: transparent; filter: brightness(1.12); }
+.sdict-scope .sdict-btn--good { background: var(--sdict-good-wash); color: var(--sdict-good); border-color: transparent; }
+.sdict-scope .sdict-btn--good:hover { background: var(--sdict-good); color: #fff; border-color: transparent; }
+.sdict-scope .sdict-btn--danger { background: var(--sdict-bad); color: #fff; border-color: transparent; }
+.sdict-scope .sdict-btn--danger:hover { background: var(--sdict-bad); filter: brightness(1.08); border-color: transparent; }
+.sdict-scope .sdict-btn--quiet { border-color: transparent; color: var(--sdict-muted); }
+.sdict-scope .sdict-btn--quiet:hover { color: inherit; border-color: transparent; }
+.sdict-scope .sdict-btn--sm { padding: 5px 11px; min-height: 32px; font-size: .8rem; border-radius: 8px; }
+.sdict-scope .sdict-iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--sdict-muted); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+.sdict-scope .sdict-iconbtn:hover { background: var(--sdict-sunken); color: inherit; }
+.sdict-scope .sdict-iconbtn--sm { width: 30px; height: 30px; border-radius: 50%; }
+.sdict-scope .sdict-link--danger { color: var(--sdict-bad); }
+.sdict-scope .sdict-iconbtn--danger:hover { color: var(--sdict-bad); background: var(--sdict-bad-wash); }
+.sdict-scope .sdict-link { display: inline; padding: 0; border: 0; background: none; color: var(--sdict-accent-ink); font-size: .82rem; font-weight: 600; cursor: pointer; }
+.sdict-scope .sdict-link:hover { text-decoration: underline; }
+.sdict-scope .sdict-link--muted { color: var(--sdict-muted); }
+.sdict-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--sdict-sunken); color: inherit; font-size: .72rem; font-weight: 700; line-height: 1; }
+
+/* ---- Masthead, search, sections ----------------------------------------- */
+.sdict-masthead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 0 0 18px; }
+.sdict-title { font-family: var(--sdict-serif); font-size: 2rem; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; }
+.sdict-masthead__sub { color: var(--sdict-muted); font-size: .9rem; margin-top: 4px; }
+.sdict-masthead__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.sdict-search { position: relative; display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--sdict-rule); border-radius: 14px; background: var(--sdict-panel); transition: border-color .12s ease; }
+.sdict-search:focus-within { border-color: var(--sdict-accent-ink); }
+.sdict-search__icon { display: inline-flex; padding: 0 4px 0 8px; color: var(--sdict-muted); }
+.sdict-scope .sdict-search__input { flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 6px; border: 0 !important; background: transparent !important; color: inherit; font-size: 1.05rem; outline: none; }
+.sdict-scope .sdict-search__input:focus, .sdict-scope .sdict-search__input:focus-visible { outline: none; box-shadow: none; }
+.sdict-scope .sdict-search__input::-webkit-search-cancel-button { cursor: pointer; }
+.sdict-scope .sdict-search__lang { flex: 0 0 auto; max-width: 34%; height: 40px; padding: 0 30px 0 12px; border: 1px solid var(--sdict-rule-soft); border-radius: 10px; background-color: var(--sdict-sunken); color: inherit; font-size: .88rem; }
+.sdict-search__go { flex: 0 0 auto; height: 44px; }
+.sdict-search--compact { padding: 4px; border-radius: 12px; flex: 1 1 280px; max-width: 420px; }
+.sdict-search--compact .sdict-search__input { height: 36px; font-size: .95rem; }
+.sdict-search--compact .sdict-search__go { height: 36px; min-height: 36px; padding: 0 12px; font-size: .82rem; }
+.sdict-suggest { position: absolute; z-index: 60; left: 0; right: 0; top: calc(100% + 6px); max-height: 380px; overflow: auto; border: 1px solid var(--sdict-rule); border-radius: 12px; background: var(--sdict-page-bg, var(--sdict-surface)); padding: 6px; }
+.sdict-scope:not(.sdict-dark) .sdict-suggest { background: var(--sdict-page-bg, #ffffff); }
+.sdict-suggest__opt { display: block; padding: 9px 11px; border-radius: 8px; color: inherit !important; }
+.sdict-suggest__opt:hover, .sdict-suggest__opt.is-active { background: var(--sdict-wash-strong); }
+.sdict-suggest__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sdict-suggest__term { font-family: var(--sdict-serif); font-weight: 700; font-size: 1.05rem; }
+.sdict-suggest__lang { margin-left: auto; font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--sdict-muted); }
+.sdict-suggest__def { display: block; margin-top: 2px; font-size: .84rem; color: var(--sdict-muted); line-height: 1.4; }
+.sdict-suggest__none { padding: 10px 12px; font-size: .88rem; color: var(--sdict-muted); }
+.sdict-scope .sdict-suggest__all { display: block; width: 100%; margin-top: 4px; padding: 9px 11px; border: 0; border-top: 1px solid var(--sdict-rule-soft); border-radius: 0 0 8px 8px; background: none; color: var(--sdict-accent-ink); font-size: .84rem; font-weight: 600; text-align: left; cursor: pointer; }
+.sdict-scope .sdict-suggest__all:hover { background: var(--sdict-sunken); }
+
+.sdict-nav { display: flex; gap: 4px; margin: 18px 0 22px; border-bottom: 1px solid var(--sdict-rule); overflow-x: auto; scrollbar-width: none; }
+.sdict-nav::-webkit-scrollbar { display: none; }
+.sdict-nav__tab { position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 11px 12px 12px; color: var(--sdict-muted) !important; font-size: .9rem; font-weight: 600; white-space: nowrap; }
+.sdict-nav__tab:hover { color: inherit !important; }
+.sdict-nav__tab .sdict-icon { margin-right: 1px; }
+.sdict-nav__tab.is-on { color: var(--sdict-accent-ink) !important; }
+.sdict-nav__tab.is-on::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--sdict-accent-ink); }
+.sdict-nav__tab.is-on .sdict-count { background: var(--sdict-wash-strong); color: var(--sdict-accent-ink); }
+
+/* ---- Word of the day ---------------------------------------------------- */
+.sdict-wod { position: relative; margin: 0 0 22px; padding: 22px 24px; border: 1px solid var(--sdict-wash-strong); border-radius: 16px; background: var(--sdict-wash); }
+.sdict-wod__eyebrow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; color: var(--sdict-accent-ink); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.sdict-wod__date { margin-left: auto; color: var(--sdict-muted); font-weight: 600; letter-spacing: .04em; }
+.sdict-wod__head { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; margin-top: 10px; }
+.sdict-wod__word { font-family: var(--sdict-serif); font-size: 2.1rem; font-weight: 600; line-height: 1.1; letter-spacing: -.01em; }
+.sdict-wod__word:hover { color: var(--sdict-accent-ink) !important; }
+.sdict-wod__def { margin-top: 10px; font-size: 1.02rem; line-height: 1.6; max-width: 62ch; }
+.sdict-wod .sdict-ex { margin-top: 6px; }
+.sdict-wod__more { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; color: var(--sdict-accent-ink) !important; font-size: .85rem; font-weight: 700; }
+.sdict-wod__more:hover { text-decoration: underline; }
+.sdict-wod-only .sdict-wrap { max-width: 640px; }
+
+/* ---- A to Z ------------------------------------------------------------- */
+.sdict-az { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 5px; margin: 0 0 24px; }
+.sdict-az__l { display: flex; align-items: center; justify-content: center; height: 38px; border: 1px solid var(--sdict-rule-soft); border-radius: 9px; color: inherit !important; font-family: var(--sdict-serif); font-size: 1rem; font-weight: 600; transition: background-color .12s ease, border-color .12s ease; }
+a.sdict-az__l:hover { border-color: var(--sdict-accent-ink); background: var(--sdict-wash); color: var(--sdict-accent-ink) !important; }
+.sdict-az__l.is-on { background: var(--sdict-accent); border-color: transparent; color: var(--sdict-on-accent) !important; }
+.sdict-az__l.is-empty { opacity: .45; }
+
+/* ---- Lists of entries --------------------------------------------------- */
+.sdict-listhead { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin: 0 0 6px; }
+.sdict-listhead__title { display: flex; align-items: center; gap: 9px; font-size: 1.05rem; font-weight: 700; }
+.sdict-listhead__n { display: inline-flex; min-width: 24px; justify-content: center; padding: 1px 8px; border-radius: 999px; background: var(--sdict-sunken); color: var(--sdict-muted); font-size: .76rem; font-weight: 700; }
+.sdict-scope .sdict-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+.sdict-scope .sdict-filter select, .sdict-scope .sdict-toolbar select { width: auto; max-width: 100%; height: 36px; padding: 0 30px 0 11px; border: 1px solid var(--sdict-rule); border-radius: 9px; background-color: transparent; color: inherit; font-size: .85rem; }
+.sdict-scope.sdict-dark .sdict-filter select option, .sdict-scope.sdict-dark .sdict-search__lang option { background: var(--sdict-surface); color: var(--sdict-surface-ink); }
+
+.sdict-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; column-gap: 34px; margin: 0 0 26px; }
+@container sd (min-width: 640px) { .sdict-list { grid-template-columns: 1fr 1fr; } }
+.sdict-item { border-top: 1px solid var(--sdict-rule-soft); }
+.sdict-item__link { display: block; padding: 14px 4px 15px; color: inherit !important; border-radius: 6px; }
+.sdict-item__link:hover .sdict-item__word { color: var(--sdict-accent-ink); }
+.sdict-item__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sdict-item__word { font-family: var(--sdict-serif); font-size: 1.2rem; font-weight: 700; line-height: 1.25; transition: color .12s ease; }
+.sdict-item__def { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 3px; color: var(--sdict-soft); font-size: .9rem; line-height: 1.5; }
+.sdict-item__lang { display: block; margin-top: 5px; font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sdict-muted); }
+
+.sdict-pos { font-family: var(--sdict-serif); font-style: italic; font-size: .92rem; color: var(--sdict-muted); }
+.sdict-pos--lg { font-size: 1.1rem; color: var(--sdict-accent-ink); }
+.sdict-pron { font-family: var(--sdict-phon); color: var(--sdict-muted); font-size: 1rem; }
+.sdict-ex { color: var(--sdict-muted); font-style: italic; font-family: var(--sdict-serif); font-size: 1rem; }
+.sdict-ex::before { content: "\201C"; }
+.sdict-ex::after { content: "\201D"; }
+.sdict-chip, .sdict-tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--sdict-rule); font-size: .78rem; line-height: 1.4; color: inherit !important; }
+.sdict-chip--link { border-color: transparent; background: var(--sdict-wash); color: var(--sdict-accent-ink) !important; font-weight: 600; }
+.sdict-chip--link:hover { background: var(--sdict-wash-strong); }
+.sdict-chip--tag { border-style: dashed; color: var(--sdict-muted) !important; }
+.sdict-tag { font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--sdict-muted) !important; }
+a.sdict-tag:hover { border-color: var(--sdict-accent-ink); color: var(--sdict-accent-ink) !important; }
+.sdict-tag--lang { background: var(--sdict-sunken); border-color: transparent; }
+.sdict-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: var(--sdict-sunken); color: var(--sdict-muted); }
+.sdict-badge--draft, .sdict-badge--pending { background: var(--sdict-warn-wash); color: var(--sdict-warn); }
+.sdict-badge--current { background: var(--sdict-wash-strong); color: var(--sdict-accent-ink); }
+
+.sdict-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 6px 0 24px; padding-top: 16px; border-top: 1px solid var(--sdict-rule-soft); }
+.sdict-pager__nums { display: flex; gap: 4px; flex-wrap: wrap; }
+.sdict-pager__n, .sdict-pager__step { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 36px; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--sdict-rule-soft); color: inherit !important; font-size: .86rem; font-weight: 600; }
+a.sdict-pager__n:hover, a.sdict-pager__step:hover { border-color: var(--sdict-accent-ink); color: var(--sdict-accent-ink) !important; }
+.sdict-pager__n.is-on { background: var(--sdict-accent); border-color: transparent; color: var(--sdict-on-accent) !important; }
+.sdict-pager__step.is-off { opacity: .45; }
+.sdict-pager__gap { display: inline-flex; align-items: center; padding: 0 4px; color: var(--sdict-muted); }
+
+.sdict-empty { padding: 34px 20px; margin: 10px 0 24px; border: 1px dashed var(--sdict-rule); border-radius: 14px; text-align: center; color: var(--sdict-muted); }
+.sdict-empty p + p { margin-top: 6px; }
+.sdict-empty .sdict-btn { margin-top: 16px; }
+.sdict-empty__big { font-family: var(--sdict-serif); font-size: 1.25rem; color: var(--sdict-surface-ink); }
+.sdict-scope:not(.sdict-dark) .sdict-empty__big { color: inherit; }
+.sdict-empty--sm { padding: 20px; }
+
+/* ---- Entry page --------------------------------------------------------- */
+.sdict-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin: 0 0 26px; }
+.sdict-crumbs { display: flex; align-items: center; gap: 8px; font-size: .86rem; color: var(--sdict-muted); }
+.sdict-crumbs a { display: inline-flex; align-items: center; gap: 6px; color: var(--sdict-muted) !important; font-weight: 600; }
+.sdict-crumbs a:hover { color: var(--sdict-accent-ink) !important; }
+
+.sdict-entry__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 18px; }
+.sdict-entry__title { min-width: 0; flex: 1 1 320px; }
+.sdict-scope .sdict-headword { font-family: var(--sdict-serif); font-size: clamp(2.3rem, 6cqi, 3.4rem); font-weight: 600; line-height: 1.05; letter-spacing: -.015em; overflow-wrap: anywhere; }
+.sdict-entry__line { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; margin-top: 10px; }
+.sdict-entry__line .sdict-pron { font-size: 1.15rem; }
+.sdict-scope .sdict-listen { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 1px solid var(--sdict-rule); background: transparent; color: var(--sdict-accent-ink); cursor: pointer; }
+.sdict-scope .sdict-listen--recorded { background: var(--sdict-wash); border-color: var(--sdict-wash-strong); }
+.sdict-scope .sdict-listen:hover, .sdict-scope .sdict-listen.is-playing { background: var(--sdict-wash-strong); border-color: var(--sdict-accent-ink); }
+.sdict-entry__tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.sdict-entry__tags:empty { display: none; }
+.sdict-entry__tools { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+.sdict-tabs { display: flex; gap: 2px; margin: 0 0 24px; border-bottom: 1px solid var(--sdict-rule); overflow-x: auto; scrollbar-width: none; }
+.sdict-tabs::-webkit-scrollbar { display: none; }
+.sdict-tab { position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px 12px; color: var(--sdict-muted) !important; font-weight: 600; font-size: .92rem; white-space: nowrap; }
+.sdict-tab:hover { color: inherit !important; }
+.sdict-tab.is-on { color: var(--sdict-accent-ink) !important; }
+.sdict-tab.is-on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--sdict-accent-ink); }
+
+.sdict-senses { list-style: none; padding: 0; margin: 0 0 26px; }
+.sdict-sense { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 0 6px; padding: 14px 0; border-top: 1px solid var(--sdict-rule-soft); scroll-margin-top: 90px; }
+.sdict-sense:first-child { border-top: 0; padding-top: 2px; }
+.sdict-sense__n { font-family: var(--sdict-serif); font-weight: 700; font-size: 1.15rem; line-height: 1.6; color: var(--sdict-accent-ink); }
+.sdict-def { font-size: 1.08rem; line-height: 1.65; }
+.sdict-sense .sdict-ex { margin-top: 6px; }
+.sdict-sense__pending { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 3px 10px; border-radius: 999px; background: var(--sdict-warn-wash); color: var(--sdict-warn) !important; font-size: .76rem; font-weight: 700; }
+.sdict-sense__tools { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; opacity: 0; transition: opacity .12s ease; }
+.sdict-sense:hover .sdict-sense__tools, .sdict-sense:focus-within .sdict-sense__tools { opacity: 1; }
+@media (hover: none) { .sdict-sense__tools { opacity: 1; } }
+
+.sdict-rel { display: grid; gap: 10px; margin: 0 0 24px; padding: 16px 0; border-top: 1px solid var(--sdict-rule-soft); border-bottom: 1px solid var(--sdict-rule-soft); }
+.sdict-rel__row { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.sdict-rel dt, .sdict-label, .sdict-block__h { font-size: .7rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--sdict-muted); }
+.sdict-rel dd { display: flex; gap: 6px; flex-wrap: wrap; }
+.sdict-block { margin: 0 0 22px; }
+.sdict-block__h { margin: 0 0 6px; }
+.sdict-block p { font-size: .98rem; line-height: 1.65; }
+
+.sdict-contribute { display: flex; align-items: center; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; margin: 26px 0; padding: 18px 20px; border-radius: 14px; background: var(--sdict-wash); border: 1px solid var(--sdict-wash-strong); }
+.sdict-contribute__text { display: grid; gap: 3px; flex: 1 1 300px; font-size: .9rem; }
+.sdict-contribute__text strong { font-family: var(--sdict-serif); font-size: 1.08rem; }
+.sdict-contribute__text span { color: var(--sdict-muted); }
+.sdict-contribute__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.sdict-entry__foot { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding-top: 16px; border-top: 1px solid var(--sdict-rule-soft); color: var(--sdict-muted); font-size: .8rem; }
+.sdict-entry__foot a { color: var(--sdict-accent-ink) !important; font-weight: 600; }
+.sdict-entry__chips { display: inline-flex; gap: 5px; flex-wrap: wrap; }
+.sdict-subhead { margin: 30px 0 14px; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sdict-muted); }
+.sdict-rules, .sdict-review-intro p { color: var(--sdict-muted); font-size: .88rem; line-height: 1.6; }
+.sdict-rules { margin: 0 0 18px; }
+.sdict-review-intro { margin: 0 0 18px; padding: 14px 16px; border-radius: 12px; background: var(--sdict-sunken); }
+.sdict-review-intro p + p { margin-top: 6px; }
+.sdict-review-intro a { color: var(--sdict-accent-ink) !important; font-weight: 600; }
+
+/* ---- Proposals ---------------------------------------------------------- */
+.sdict-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 16px; }
+.sdict-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 11px; background: var(--sdict-sunken); }
+.sdict-seg__b { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; color: var(--sdict-muted) !important; font-size: .84rem; font-weight: 600; }
+.sdict-seg__b:hover { color: inherit !important; }
+.sdict-seg__b.is-on { background: var(--sdict-page-bg, var(--sdict-surface)); color: inherit !important; }
+.sdict-scope:not(.sdict-dark) .sdict-seg__b.is-on { background: var(--sdict-page-bg, #fff); }
+
+.sdict-props { display: grid; gap: 14px; margin: 0 0 22px; }
+.sdict-prop { padding: 16px 18px; border: 1px solid var(--sdict-rule); border-radius: 14px; background: var(--sdict-panel); scroll-margin-top: 90px; transition: border-color .3s ease, background-color .3s ease; }
+.sdict-prop.is-flash, .sdict-hist__item.is-flash .sdict-hist__main { border-color: var(--sdict-accent-ink); background: var(--sdict-wash); }
+.sdict-prop--accepted, .sdict-prop--rejected, .sdict-prop--expired, .sdict-prop--withdrawn, .sdict-prop--superseded { background: transparent; }
+.sdict-prop__head { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.sdict-prop__term { font-family: var(--sdict-serif); font-weight: 700; font-size: 1.15rem; }
+a.sdict-prop__term:hover { color: var(--sdict-accent-ink) !important; }
+.sdict-prop__lang { font-size: .68rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--sdict-muted); }
+.sdict-kind { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 7px; font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; background: var(--sdict-wash-strong); color: var(--sdict-accent-ink); }
+.sdict-kind--meaning-add { background: var(--sdict-good-wash); color: var(--sdict-good); }
+.sdict-kind--meaning-replace { background: var(--sdict-info-wash); color: var(--sdict-info); }
+.sdict-kind--meaning-remove { background: var(--sdict-bad-wash); color: var(--sdict-bad); }
+.sdict-kind--edit { background: var(--sdict-warn-wash); color: var(--sdict-warn); }
+.sdict-pill { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; padding: 3px 10px; border-radius: 999px; background: var(--sdict-sunken); color: var(--sdict-muted); font-size: .74rem; font-weight: 600; }
+.sdict-pill--open { background: var(--sdict-wash); color: var(--sdict-accent-ink); }
+.sdict-pill--passed { background: var(--sdict-warn-wash); color: var(--sdict-warn); }
+.sdict-pill--accepted { background: var(--sdict-good-wash); color: var(--sdict-good); }
+.sdict-pill--rejected { background: var(--sdict-bad-wash); color: var(--sdict-bad); }
+
+.sdict-prop__body { font-size: .95rem; }
+.sdict-preview__line { display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.sdict-mini-senses { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.sdict-mini-senses li { line-height: 1.55; }
+.sdict-mini-senses li::marker { font-family: var(--sdict-serif); font-weight: 700; color: var(--sdict-accent-ink); }
+.sdict-mini-senses .sdict-ex { display: block; margin-top: 2px; font-size: .92rem; }
+.sdict-preview__rel { margin-top: 8px; font-size: .88rem; }
+.sdict-preview__rel .sdict-label, .sdict-prop__reason .sdict-label, .sdict-compare .sdict-label { margin-right: 8px; }
+.sdict-compare { display: grid; gap: 10px; }
+.sdict-compare__row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 4px 12px; align-items: baseline; }
+.sdict-compare__row p { line-height: 1.6; }
+.sdict-compare__row .sdict-diff-ex { grid-column: 2; }
+.sdict-diff-ex { display: block; margin-top: 4px; font-style: italic; color: var(--sdict-muted); font-family: var(--sdict-serif); }
+.sdict-stale { margin-top: 10px; padding: 7px 11px; border-radius: 8px; background: var(--sdict-warn-wash); color: var(--sdict-warn); font-size: .82rem; font-weight: 600; }
+.sdict-prop__reason { margin-top: 12px; font-size: .88rem; line-height: 1.55; }
+.sdict-prop__note { margin-top: 10px; padding: 8px 12px; border-radius: 9px; background: var(--sdict-sunken); font-size: .84rem; }
+.sdict-prop__note--passed { background: var(--sdict-warn-wash); color: var(--sdict-warn); }
+.sdict-prop__note--accepted { background: var(--sdict-good-wash); color: var(--sdict-good); }
+.sdict-prop__note--rejected { background: var(--sdict-bad-wash); color: var(--sdict-bad); }
+
+.sdict-ins, .sdict-scope ins.sdict-ins { background: var(--sdict-good-wash); color: var(--sdict-good); text-decoration: none; border-radius: 3px; padding: 0 2px; }
+.sdict-del, .sdict-scope del.sdict-del { background: var(--sdict-bad-wash); color: var(--sdict-bad); text-decoration: line-through; text-decoration-thickness: 1px; border-radius: 3px; padding: 0 2px; }
+.sdict-del + .sdict-ins, .sdict-ins + .sdict-del { margin-left: .2em; }
+.sdict-chg { display: inline-block; margin-right: 6px; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.sdict-chg--add { color: var(--sdict-good); }
+.sdict-chg--del { color: var(--sdict-bad); }
+.sdict-chg--edit { color: var(--sdict-info); }
+.sdict-sep { color: var(--sdict-muted); }
+
+.sdict-notes { margin-top: 10px; font-size: .84rem; }
+.sdict-notes summary { cursor: pointer; color: var(--sdict-muted); font-weight: 600; }
+.sdict-notes ul { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+.sdict-notes li { display: flex; align-items: baseline; gap: 8px; }
+.sdict-notes__v { display: inline-flex; flex-shrink: 0; width: 18px; height: 18px; align-items: center; justify-content: center; border-radius: 50%; }
+.sdict-notes__v--up { background: var(--sdict-good-wash); color: var(--sdict-good); }
+.sdict-notes__v--down { background: var(--sdict-bad-wash); color: var(--sdict-bad); }
+.sdict-notes__who { margin-left: auto; color: var(--sdict-muted); white-space: nowrap; }
+
+.sdict-prop__foot { display: grid; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--sdict-rule-soft); }
+.sdict-vote { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sdict-scope .sdict-vote__btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--sdict-rule); background: transparent; color: inherit !important; font-size: .84rem; font-weight: 600; cursor: pointer; transition: background-color .12s ease, border-color .12s ease, color .12s ease; }
+.sdict-scope .sdict-vote__btn.is-static { cursor: default; color: var(--sdict-muted) !important; }
+.sdict-scope button.sdict-vote__btn--up:hover, .sdict-scope .sdict-vote__btn--up[aria-pressed="true"] { border-color: var(--sdict-good); background: var(--sdict-good-wash); color: var(--sdict-good) !important; }
+.sdict-scope button.sdict-vote__btn--down:hover, .sdict-scope .sdict-vote__btn--down[aria-pressed="true"] { border-color: var(--sdict-bad); background: var(--sdict-bad-wash); color: var(--sdict-bad) !important; }
+.sdict-scope .sdict-vote__btn:disabled { opacity: .6; }
+.sdict-vote__n { min-width: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.sdict-progress { display: flex; align-items: center; gap: 10px; flex: 1 1 200px; min-width: 0; }
+.sdict-meter { flex: 0 0 90px; height: 6px; border-radius: 999px; background: var(--sdict-sunken); overflow: hidden; }
+.sdict-meter__fill { display: block; height: 100%; border-radius: 999px; background: var(--sdict-good); transition: width .3s ease; }
+.sdict-progress__text { font-size: .8rem; color: var(--sdict-muted); }
+.sdict-prop__meta { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: .78rem; color: var(--sdict-muted); }
+.sdict-prop__meta a { color: var(--sdict-accent-ink) !important; font-weight: 600; }
+.sdict-prop__rivals { color: var(--sdict-warn); font-weight: 600; }
+.sdict-prop__actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* ---- History ------------------------------------------------------------ */
+.sdict-hist { list-style: none; padding: 0; margin: 0 0 20px; position: relative; }
+.sdict-hist::before { content: ""; position: absolute; left: 14px; top: 16px; bottom: 16px; width: 1px; background: var(--sdict-rule); }
+.sdict-hist__item { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 14px; padding: 0 0 16px; scroll-margin-top: 90px; }
+.sdict-hist__dot { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--sdict-rule); background: var(--sdict-page-bg, var(--sdict-surface)); color: var(--sdict-muted); }
+.sdict-scope:not(.sdict-dark) .sdict-hist__dot { background: var(--sdict-page-bg, #fff); }
+.sdict-hist__item--merged .sdict-hist__dot, .sdict-hist__item--created .sdict-hist__dot { color: var(--sdict-accent-ink); border-color: var(--sdict-accent-ink); }
+.sdict-hist__main { min-width: 0; padding: 12px 16px; border: 1px solid var(--sdict-rule-soft); border-radius: 12px; transition: border-color .3s ease, background-color .3s ease; }
+.sdict-hist__head { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; }
+.sdict-hist__head strong { font-size: .95rem; }
+.sdict-hist__head time { color: var(--sdict-muted); font-size: .8rem; }
+.sdict-hist__who, .sdict-hist__summary { margin-top: 4px; font-size: .84rem; color: var(--sdict-muted); }
+.sdict-hist__who a { color: var(--sdict-accent-ink) !important; font-weight: 600; }
+.sdict-hist__diff { margin-top: 10px; }
+.sdict-hist__diff summary { cursor: pointer; font-size: .8rem; font-weight: 600; color: var(--sdict-muted); }
+.sdict-hist__main > .sdict-btn { margin-top: 10px; }
+.sdict-diff { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 14px; margin-top: 8px; font-size: .92rem; line-height: 1.6; }
+.sdict-diff dt { font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--sdict-muted); padding-top: 3px; }
+.sdict-diff dd { min-width: 0; overflow-wrap: anywhere; }
+
+/* ---- Contributors ------------------------------------------------------- */
+.sdict-tablewrap { overflow-x: auto; margin: 0 0 24px; border: 1px solid var(--sdict-rule); border-radius: 14px; }
+.sdict-scope .sdict-table { width: 100%; border-collapse: collapse; margin: 0; font-size: .9rem; border: 0; }
+.sdict-scope .sdict-table :is(th, td) { padding: 11px 14px; border: 0; border-bottom: 1px solid var(--sdict-rule-soft); text-align: left; background: transparent; }
+.sdict-scope .sdict-table tr:last-child td { border-bottom: 0; }
+.sdict-scope .sdict-table th { font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--sdict-muted); background: var(--sdict-sunken); }
+.sdict-scope .sdict-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.sdict-rank { width: 44px; font-family: var(--sdict-serif); font-weight: 700; color: var(--sdict-accent-ink); }
+.sdict-avatar { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 10px; border-radius: 50%; background: var(--sdict-wash-strong); color: var(--sdict-accent-ink); font-size: .7rem; font-weight: 800; vertical-align: middle; }
+
+/* ---- Dialog and forms --------------------------------------------------- */
+.sdict-modal { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(12, 17, 20, 0.58); }
+.sdict-modal__panel { display: flex; flex-direction: column; width: 100%; max-width: 480px; max-height: calc(100vh - 40px); background: var(--sdict-surface); color: var(--sdict-surface-ink); border: 1px solid var(--sdict-rule); border-radius: 16px; overflow: hidden; }
+.sdict-modal__panel--wide { max-width: 720px; }
+.sdict-modal__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 16px 12px 22px; border-bottom: 1px solid var(--sdict-rule-soft); }
+.sdict-scope .sdict-modal__title { font-family: var(--sdict-serif); font-size: 1.3rem; font-weight: 600; line-height: 1.25; color: inherit; }
+.sdict-modal__body { padding: 18px 22px 20px; overflow-y: auto; }
+.sdict-modal__text { font-size: .92rem; line-height: 1.6; color: var(--sdict-muted); }
+.sdict-modal__foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--sdict-rule-soft); background: var(--sdict-sunken); }
+@media (max-width: 560px) {
+  .sdict-modal { padding: 0; align-items: flex-end; }
+  .sdict-modal__panel { max-height: 94vh; border-radius: 16px 16px 0 0; }
+  .sdict-modal__foot { flex-direction: column-reverse; }
+  .sdict-modal__foot .sdict-btn { width: 100%; }
+}
+
+/* Themes often space paragraphs in post content; inside the dialog the form sets its own spacing. */
+.sdict-scope .sdict-modal :where(p, h3, ol, ul, fieldset, label, legend) { margin: 0; }
+/* Rows keep their own height: a theme that gives forms a height or flex layout would otherwise spread them apart. */
+.sdict-scope .sdict-form { display: grid; gap: 14px; align-content: start; align-items: start; height: auto; min-height: 0; max-height: none; flex: none; }
+.sdict-scope .sdict-form > *, .sdict-scope .sdict-grid > * { align-self: start; }
+.sdict-form__intro { font-size: .88rem; line-height: 1.6; color: var(--sdict-muted); padding-bottom: 12px; border-bottom: 1px solid var(--sdict-rule-soft); }
+.sdict-form__err { padding: 10px 12px; border-radius: 10px; background: var(--sdict-bad-wash); color: var(--sdict-bad); font-size: .86rem; font-weight: 600; }
+.sdict-form__err a { color: inherit !important; text-decoration: underline; }
+.sdict-scope .sdict-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; align-content: start; height: auto; min-height: 0; }
+.sdict-scope .sdict-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 600px) { .sdict-scope .sdict-grid, .sdict-scope .sdict-grid--3 { grid-template-columns: 1fr; } }
+.sdict-scope .sdict-form__note { margin-top: -6px; font-size: .74rem; color: var(--sdict-muted); }
+.sdict-scope .sdict-modal datalist { display: none; }
+/* Theme spacing on inputs and labels would open uneven gaps between the fields. */
+.sdict-scope .sdict-modal .sdict-field :is(input, select, textarea) { margin: 0; }
+.sdict-scope .sdict-modal .sdict-field > * { margin-top: 0; margin-bottom: 0; }
+.sdict-field { display: grid; gap: 5px; min-width: 0; font-weight: 400; }
+.sdict-scope .sdict-modal .sdict-field { height: auto; min-height: 0; align-content: start; }
+.sdict-field--wide { grid-column: 1 / -1; }
+.sdict-field__label { font-size: .8rem; font-weight: 700; }
+.sdict-opt { font-weight: 500; color: var(--sdict-muted); }
+.sdict-field__hint { font-size: .74rem; color: var(--sdict-muted); }
+.sdict-field__err { font-size: .78rem; font-weight: 600; color: var(--sdict-bad); }
+.sdict-scope .sdict-form :is(input[type="text"], input:not([type]), select, textarea), .sdict-scope .sdict-field textarea { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid var(--sdict-rule); border-radius: 9px; background: transparent; color: inherit; font-size: .92rem; font-weight: 400; line-height: 1.45; transition: border-color .12s ease; }
+.sdict-scope .sdict-form select { padding-right: 30px; }
+.sdict-scope.sdict-dark .sdict-form select option { background: var(--sdict-surface); color: var(--sdict-surface-ink); }
+.sdict-scope .sdict-form textarea, .sdict-scope .sdict-field textarea { resize: vertical; }
+.sdict-scope .sdict-form :is(input, select, textarea):focus, .sdict-scope .sdict-field textarea:focus { border-color: var(--sdict-accent-ink); outline: 2px solid var(--sdict-accent-ink); outline-offset: 0; box-shadow: none; }
+.sdict-field.is-error :is(input, select, textarea), .sdict-fieldset.is-error .sdict-defrow:first-child textarea { border-color: var(--sdict-bad) !important; }
+.sdict-fieldset { min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--sdict-rule-soft); border-radius: 12px; display: grid; gap: 10px; }
+.sdict-fieldset legend { padding: 0 6px; font-size: .8rem; font-weight: 700; }
+.sdict-defs { display: grid; gap: 10px; }
+.sdict-defrow { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: start; }
+.sdict-defrow__n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin-top: 7px; border-radius: 50%; background: var(--sdict-wash-strong); color: var(--sdict-accent-ink); font-family: var(--sdict-serif); font-weight: 700; font-size: .85rem; }
+.sdict-defrow__fields { display: grid; gap: 6px; }
+.sdict-defrow__tools { display: flex; flex-direction: column; gap: 2px; }
+.sdict-current { padding: 12px 14px; border-radius: 10px; background: var(--sdict-sunken); }
+.sdict-scope .sdict-current p { margin-top: 4px; line-height: 1.55; }
+.sdict-thanks { text-align: center; padding: 8px 0; }
+.sdict-thanks__icon { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin-bottom: 12px; border-radius: 50%; background: var(--sdict-good-wash); color: var(--sdict-good); font-size: 1.5rem; font-weight: 800; }
+.sdict-scope .sdict-thanks p + p { margin-top: 6px; font-size: .86rem; }
+.sdict-rec { display: grid; gap: 14px; }
+.sdict-rec__current { display: grid; gap: 8px; padding: 12px 14px; border-radius: 10px; background: var(--sdict-sunken); }
+.sdict-rec__current .sdict-link { justify-self: start; }
+.sdict-rec audio, .sdict-diff-audio { width: 100%; max-width: 360px; height: 36px; }
+.sdict-rec__box { display: flex; align-items: center; gap: 14px; }
+.sdict-scope .sdict-rec__btn { display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 20px 0 16px; border-radius: 999px; border: 1px solid var(--sdict-rule); background: transparent; color: inherit; font-weight: 700; cursor: pointer; box-shadow: none; }
+.sdict-scope .sdict-rec__btn:hover { background: var(--sdict-sunken); }
+.sdict-rec__dot { width: 14px; height: 14px; border-radius: 50%; background: var(--sdict-bad); }
+.sdict-scope .sdict-rec__btn[aria-pressed="true"] { border-color: var(--sdict-bad); background: var(--sdict-bad-wash); color: var(--sdict-bad); }
+.sdict-rec__btn[aria-pressed="true"] .sdict-rec__dot { border-radius: 3px; animation: sdict-pulse 1s ease-in-out infinite; }
+@keyframes sdict-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .sdict-rec__btn[aria-pressed="true"] .sdict-rec__dot { animation: none; } }
+.sdict-rec__time { font-variant-numeric: tabular-nums; color: var(--sdict-muted); font-weight: 600; }
+.sdict-scope .sdict-rec__hint { font-size: .82rem; color: var(--sdict-muted); }
+.sdict-rec__file { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--sdict-rule-soft); font-size: .86rem; }
+.sdict-cite { padding: 14px 16px; border-radius: 10px; background: var(--sdict-sunken); font-family: var(--sdict-serif); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; user-select: all; }
+
+.sdict-toast { position: fixed; z-index: 100001; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 11px 18px; border-radius: 12px; background: #1d2622; color: #f2f5f3; font-size: .88rem; font-weight: 600; line-height: 1.4; }
+.sdict-toast--good { background: #14532d; }
+.sdict-toast--bad { background: #7a1d16; }
+.sdict-scope.sdict-dark .sdict-toast { background: #e8ecee; color: #121816; }
+.sdict-scope.sdict-dark .sdict-toast--good { background: #bbf7d0; }
+.sdict-scope.sdict-dark .sdict-toast--bad { background: #fecaca; }
+
+/* ---- Inline definitions ([sepo_define]) ---------------------------------- */
+.sdict-scope.sdict-define-scope { display: inline; width: auto; position: relative; }
+.sdict-define { position: relative; color: inherit !important; text-decoration: underline dotted !important; text-decoration-color: var(--sdict-accent-ink) !important; text-underline-offset: 3px; cursor: help; }
+.sdict-define__tip { position: absolute; z-index: 50; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); display: none; width: max-content; max-width: 280px; padding: 10px 12px; border: 1px solid var(--sdict-rule); border-radius: 10px; background: var(--sdict-page-bg, var(--sdict-surface)); color: inherit; font-size: .84rem; font-weight: 400; line-height: 1.45; text-align: left; white-space: normal; }
+.sdict-scope:not(.sdict-dark) .sdict-define__tip { background: var(--sdict-page-bg, #fff); }
+.sdict-define__tip strong { font-family: var(--sdict-serif); }
+.sdict-define__tip em { color: var(--sdict-muted); font-family: var(--sdict-serif); }
+.sdict-define__tip span { display: block; margin-top: 3px; }
+.sdict-define:hover .sdict-define__tip, .sdict-define:focus .sdict-define__tip, .sdict-define:focus-visible .sdict-define__tip { display: block; }
+
+/* ---- Narrow ------------------------------------------------------------- */
+@container sd (max-width: 560px) {
+  .sdict-title { font-size: 1.6rem; }
+  .sdict-search { flex-wrap: wrap; }
+  .sdict-scope .sdict-search__input { flex-basis: calc(100% - 40px); }
+  .sdict-scope .sdict-search__lang { flex: 1 1 auto; max-width: none; }
+  .sdict-search__go { flex: 0 0 auto; }
+  .sdict-search--compact { flex-wrap: nowrap; max-width: none; }
+  .sdict-search--compact .sdict-search__input { flex-basis: auto; }
+  .sdict-wod { padding: 18px; }
+  .sdict-wod__word { font-size: 1.75rem; }
+  .sdict-az { grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 4px; }
+  .sdict-az__l { height: 34px; font-size: .92rem; }
+  .sdict-rel__row, .sdict-compare__row { grid-template-columns: 1fr; gap: 4px; }
+  .sdict-compare__row .sdict-diff-ex { grid-column: 1; }
+  .sdict-diff { grid-template-columns: 1fr; gap: 2px; }
+  .sdict-diff dd { margin-bottom: 8px; }
+  .sdict-prop { padding: 14px; }
+  .sdict-pill { margin-left: 0; }
+  .sdict-pager__step span { display: none; }
+  .sdict-contribute { padding: 16px; }
+  .sdict-contribute__actions .sdict-btn { flex: 1 1 auto; }
+}
+@container sd (max-width: 480px) {
+  .sdict-toolbar { flex-direction: column; align-items: stretch; }
+  .sdict-seg { justify-content: stretch; }
+  .sdict-seg__b { flex: 1 1 auto; justify-content: center; }
+  .sdict-scope .sdict-filter select { flex: 1 1 140px; }
+}
+
+/* ---- Theme isolation ----------------------------------------------------- */
+/* Form controls keep the dictionary's sizes whatever a theme gives every input. */
+.sdict-scope :is(input, select, textarea) { max-width: 100%; }
+.sdict-scope .sdict-search__lang { width: auto; }
+.sdict-scope .sdict-search__input { flex: 1 1 0%; width: 0; min-width: 0; min-height: 0; }
+.sdict-scope .sdict-search { max-width: 100%; min-width: 0; }
+.sdict-scope .sdict-btn:hover, .sdict-scope .sdict-vote__btn:hover, .sdict-scope .sdict-iconbtn:hover { transform: none; box-shadow: none; }
+.sdict-scope .sdict-table { margin: 0; }
+
+/* Headwords and terms in the strongest ink for the mode, so they stand out from the meanings. */
+.sdict-scope :is(.sdict-headword, .sdict-item__word, .sdict-wod__word, .sdict-prop__term, .sdict-suggest__term, .sdict-title, .sdict-modal__title, .sdict-listhead__title, .sdict-hist__head strong, .sdict-contribute__text strong) { color: var(--sdict-strong); }
+.sdict-scope .sdict-item__link:hover .sdict-item__word, .sdict-scope a.sdict-prop__term:hover, .sdict-scope .sdict-wod__word:hover { color: var(--sdict-accent-ink) !important; }
+.sdict-scope.sdict-dark .sdict-def, .sdict-scope.sdict-dark .sdict-block p, .sdict-scope.sdict-dark .sdict-wod__def { color: var(--sdict-text); }
+/* A deep accent is hard to make out on a dark page: in dark mode filled controls use the light accent with dark text. */
+.sdict-scope.sdict-dark .sdict-btn--primary, .sdict-scope.sdict-dark .sdict-btn--primary:hover,
+.sdict-scope.sdict-dark .sdict-az__l.is-on, .sdict-scope.sdict-dark .sdict-pager__n.is-on { background: var(--sdict-accent-ink); color: #0b1215 !important; border-color: transparent; }

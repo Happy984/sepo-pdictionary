@@ -1,0 +1,30 @@
+/* Sepo Dictionary — dashboard screens. Flat: borders and tints, no shadows. */
+.sdict-admin label { display: block; font-weight: 600; margin-bottom: 4px; }
+.sdict-admin input[type="text"], .sdict-admin textarea { width: 100%; }
+.sdict-admin__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0 16px; }
+.sdict-admin__h { margin: 18px 0 8px; font-size: 14px; }
+.sdict-admin__defs { margin: 0 0 6px; padding-left: 22px; }
+.sdict-admin__def { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; margin: 0 0 10px; padding: 10px; border: 1px solid #dcdcde; border-radius: 6px; background: #fff; }
+.sdict-admin__def::marker { font-weight: 700; color: #0b3d33; }
+.sdict-admin__def-fields { display: grid; gap: 6px; }
+.sdict-admin__def-tools { display: flex; flex-direction: column; gap: 2px; }
+.sdict-admin__def-tools .button-link { width: 26px; height: 24px; text-decoration: none; font-size: 15px; line-height: 1; border-radius: 4px; }
+.sdict-admin__def-tools .button-link:hover { background: #f0f0f1; }
+.sdict-admin__del:hover { color: #b32d2e; }
+.sdict-admin-side__hist { margin: 0; }
+.sdict-admin-side__hist li { margin: 0 0 8px; padding: 0 0 8px; border-bottom: 1px solid #f0f0f1; }
+
+.sdict-admin-page .sdict-scope { margin-top: 16px; }
+.sdict-admin-page .sdict-wrap { max-width: 980px; margin: 0; }
+.sdict-settings .form-table input.small-text { width: 70px; }
+.sdict-settings .sdict-rules-preview { max-width: 720px; padding: 10px 14px; border-radius: 6px; background: #f0f6f4; color: #1d2327; }
+.sdict-transfer .card { max-width: 720px; padding: 16px 20px; border-radius: 6px; box-shadow: none; }
+.sdict-transfer .card h2 { margin-top: 0; }
+.sdict-notice-tint { padding: 10px 14px; border-radius: 6px; background: #edf7ef; }
+.sdict-notice-tint--bad { background: #fcf0f1; }
+
+.sdict-admin__audio { grid-column: 1 / -1; margin: 0 0 12px; }
+.sdict-admin__audio audio { display: block; width: 100%; max-width: 360px; height: 36px; margin: 2px 0 6px; }
+.sdict-admin__audio audio[hidden] { display: none; }
+.sdict-admin__audio-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.sdict-admin__audio .button.is-recording { color: #b32d2e; border-color: #b32d2e; background: #fcf0f1; }
