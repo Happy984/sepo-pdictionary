@@ -48,6 +48,13 @@ final class WordOfDayWidget extends Widget_Base
             $langs[$t->slug] = $t->name;
         }
         $this->start_controls_section('content', ['label' => __('Word of the day', 'sepo-dictionary')]);
+        $dicts = [];
+        foreach (\SepoDictionary\Embeds::dictionaryOptions() as $o) {
+            $dicts[$o['value']] = $o['label'];
+        }
+        if (count($dicts) > 2) {
+            $this->add_control('dictionary', ['label' => __('Dictionary', 'sepo-dictionary'), 'type' => Controls_Manager::SELECT, 'default' => '', 'options' => $dicts]);
+        }
         $this->add_control('language', ['label' => __('Language', 'sepo-dictionary'), 'type' => Controls_Manager::SELECT, 'default' => '', 'options' => $langs]);
         $this->add_control('title', ['label' => __('Heading', 'sepo-dictionary'), 'type' => Controls_Manager::TEXT, 'default' => __('Word of the day', 'sepo-dictionary')]);
         $this->end_controls_section();
@@ -56,6 +63,6 @@ final class WordOfDayWidget extends Widget_Base
     protected function render(): void
     {
         $s = $this->get_settings_for_display();
-        echo Frontend::wodShortcode(['language' => (string) ($s['language'] ?? ''), 'title' => (string) ($s['title'] ?? '')]); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
+        echo Frontend::wodShortcode(['language' => (string) ($s['language'] ?? ''), 'dictionary' => (string) ($s['dictionary'] ?? ''), 'title' => (string) ($s['title'] ?? '')]); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
     }
 }

@@ -20,6 +20,10 @@ defined('ABSPATH') || exit;
  *   POST proposal/resubmit   put a closed suggestion of yours forward again
  *   POST proposal/moderate   accept, reject or delete a suggestion (editors)
  *   POST history/restore     restore an earlier version of an entry (editors)
+ *
+ * "Editors" are the site's editors, and a dictionary's own editors for the
+ * entries and suggestions in that dictionary; each route checks the
+ * dictionary it acts on.
  */
 final class Rest
 {
@@ -33,19 +37,19 @@ final class Rest
     public static function routes(): void
     {
         $member = static fn(): bool => is_user_logged_in();
-        $editor = static fn(): bool => Plugin::canManage();
+        $editor = static fn(): bool => Plugin::managesAny();
 
         register_rest_route(self::NS, '/search', ['methods' => 'GET', 'callback' => [self::class, 'search'], 'permission_callback' => '__return_true']);
         register_rest_route(self::NS, '/entry', [
             ['methods' => 'GET', 'callback' => [self::class, 'entry'], 'permission_callback' => '__return_true'],
             ['methods' => 'POST', 'callback' => [self::class, 'saveEntry'], 'permission_callback' => $editor],
         ]);
-        register_rest_route(self::NS, '/audio', ['methods' => 'POST', 'callback' => [self::class, 'audio'], 'permission_callback' => static fn(): bool => Plugin::canManage() && current_user_can('upload_files')]);
+        register_rest_route(self::NS, '/audio', ['methods' => 'POST', 'callback' => [self::class, 'audio'], 'permission_callback' => $editor]);
         register_rest_route(self::NS, '/entry/trash', ['methods' => 'POST', 'callback' => [self::class, 'trash'], 'permission_callback' => $editor]);
-        register_rest_route(self::NS, '/propose', ['methods' => 'POST', 'callback' => [self::class, 'propose'], 'permission_callback' => static fn(): bool => Plugin::canPropose()]);
+        register_rest_route(self::NS, '/propose', ['methods' => 'POST', 'callback' => [self::class, 'propose'], 'permission_callback' => $member]);
         register_rest_route(self::NS, '/vote', ['methods' => 'POST', 'callback' => [self::class, 'vote'], 'permission_callback' => static fn(): bool => Plugin::canVote()]);
         register_rest_route(self::NS, '/proposal/withdraw', ['methods' => 'POST', 'callback' => [self::class, 'withdraw'], 'permission_callback' => $member]);
-        register_rest_route(self::NS, '/proposal/resubmit', ['methods' => 'POST', 'callback' => [self::class, 'resubmit'], 'permission_callback' => static fn(): bool => Plugin::canPropose()]);
+        register_rest_route(self::NS, '/proposal/resubmit', ['methods' => 'POST', 'callback' => [self::class, 'resubmit'], 'permission_callback' => $member]);
         register_rest_route(self::NS, '/proposal/moderate', ['methods' => 'POST', 'callback' => [self::class, 'moderate'], 'permission_callback' => $editor]);
         register_rest_route(self::NS, '/history/restore', ['methods' => 'POST', 'callback' => [self::class, 'restore'], 'permission_callback' => $editor]);
     }
@@ -59,6 +63,11 @@ final class Rest
     private static function fail(string $message, int $status = 422, array $data = []): \WP_Error
     {
         return new \WP_Error('sepo_dictionary', $message, ['status' => $status] + $data);
+    }
+
+    private static function denied(): \WP_Error
+    {
+        return self::fail(__('You cannot change this dictionary.', 'sepo-dictionary'), 403);
     }
 
     private static function failFrom(\Throwable $e): \WP_Error
@@ -86,10 +95,12 @@ final class Rest
     {
         $q = Entry::line($r->get_param('q'), 100);
         $limit = max(1, min(20, (int) ($r->get_param('limit') ?: 8)));
+        $dict = Dictionaries::id(sanitize_text_field((string) $r->get_param('dictionary')));
         $posts = Entry::search($q, [
-            'limit'    => $limit,
-            'language' => sanitize_title((string) $r->get_param('language')),
-            'manager'  => Plugin::canManage(),
+            'limit'      => $limit,
+            'dictionary' => $dict,
+            'language'   => sanitize_title((string) $r->get_param('language')),
+            'manager'    => Plugin::canManage($dict),
         ]);
         $out = [];
         foreach ($posts as $p) {
@@ -97,9 +108,13 @@ final class Rest
             if ($s === null) {
                 continue;
             }
+            if ($s['status'] !== 'publish' && !Plugin::canManage((int) $s['dictionary'])) {
+                continue;
+            }
             $out[] = [
-                'id'       => (int) $p->ID,
-                'term'     => $s['term'],
+                'id'         => (int) $p->ID,
+                'dictionary' => Dictionaries::name((int) $s['dictionary']),
+                'term'       => $s['term'],
                 'url'      => Entry::url((int) $p->ID),
                 'pos'      => $s['pos'],
                 'language' => $s['language'],
@@ -114,11 +129,17 @@ final class Rest
     {
         $id = (int) $r->get_param('id');
         if ($id < 1) {
-            $post = get_page_by_path(sanitize_title((string) $r->get_param('slug')), OBJECT, PostType::TYPE);
-            $id = $post instanceof \WP_Post ? (int) $post->ID : 0;
+            $slug = sanitize_title((string) $r->get_param('slug'));
+            $dict = Dictionaries::id(sanitize_text_field((string) $r->get_param('dictionary')));
+            if ($dict > 0) {
+                $id = Routes::find($slug, $dict);
+            } else {
+                $post = get_page_by_path($slug, OBJECT, PostType::TYPE);
+                $id = $post instanceof \WP_Post ? (int) $post->ID : 0;
+            }
         }
         $s = $id > 0 ? Entry::get($id) : null;
-        if ($s === null || ($s['status'] !== 'publish' && !Plugin::canManage())) {
+        if ($s === null || ($s['status'] !== 'publish' && !Plugin::canManage((int) $s['dictionary']))) {
             return self::fail(__('Not found.', 'sepo-dictionary'), 404);
         }
         return self::ok(['entry' => ['id' => $id, 'url' => Entry::url($id)] + $s]);
@@ -132,13 +153,24 @@ final class Rest
         $id = (int) ($b['id'] ?? 0);
         $in = is_array($b['entry'] ?? null) ? $b['entry'] : [];
         try {
-            if ($id > 0 && Entry::get($id) === null) {
+            $current = $id > 0 ? Entry::get($id) : null;
+            if ($id > 0 && $current === null) {
                 return self::fail(__('That entry could not be found.', 'sepo-dictionary'), 404);
             }
-            $clean = Entry::clean($in, $id > 0 ? (Entry::get($id) ?? []) : []);
-            $clash = Entry::find($clean['term'], $clean['language'], $id);
+            if ($current !== null && !Plugin::canManage((int) $current['dictionary'])) {
+                return self::denied();
+            }
+            if ($current === null && Dictionaries::id($in['dictionary'] ?? 0) < 1 && Dictionaries::many()) {
+                return self::fail(__('Choose the dictionary the word belongs in.', 'sepo-dictionary'));
+            }
+            $clean = Entry::clean($in, $current ?? []);
+            // Moving a word, or adding one, needs the right to change the dictionary it goes into.
+            if (!Plugin::canManage((int) $clean['dictionary'])) {
+                return self::denied();
+            }
+            $clash = Entry::find($clean['term'], $clean['language'], $id, (int) $clean['dictionary']);
             if ($clash > 0) {
-                return self::fail(__('Another entry already uses this spelling in this language.', 'sepo-dictionary'), 409, ['entry_url' => Entry::url($clash)]);
+                return self::fail(__('Another entry in this dictionary already uses this spelling in this language.', 'sepo-dictionary'), 409, ['entry_url' => Entry::url($clash)]);
             }
             if ($clean['definitions'] === []) {
                 return self::fail(__('Add at least one meaning.', 'sepo-dictionary'));
@@ -165,8 +197,13 @@ final class Rest
     {
         $entryId = (int) $r->get_param('entry_id');
         $state = $entryId > 0 ? Entry::get($entryId) : null;
-        if ($entryId > 0 && ($state === null || !current_user_can('edit_post', $entryId))) {
+        if ($entryId > 0 && $state === null) {
             return self::fail(__('That entry could not be found.', 'sepo-dictionary'), 404);
+        }
+        // A recording for an entry needs the right to change its dictionary; one for a
+        // word not saved yet comes from the dashboard editor, which needs the media library.
+        if ($state !== null ? !Plugin::canManage((int) $state['dictionary']) : !(Plugin::siteManager() && current_user_can('upload_files'))) {
+            return self::denied();
         }
         $ctx = ['user_id' => get_current_user_id(), 'actor_id' => get_current_user_id()];
 
@@ -221,13 +258,17 @@ final class Rest
     public static function trash(\WP_REST_Request $r): \WP_REST_Response|\WP_Error
     {
         $id = (int) (self::body($r)['id'] ?? 0);
-        if (Entry::get($id) === null) {
+        $s = Entry::get($id);
+        if ($s === null) {
             return self::fail(__('That entry could not be found.', 'sepo-dictionary'), 404);
         }
-        if (!current_user_can('delete_post', $id) || !wp_trash_post($id)) {
+        if (!Plugin::canManage((int) $s['dictionary'])) {
+            return self::denied();
+        }
+        if (!wp_trash_post($id)) {
             return self::fail(__('The entry could not be moved to the trash.', 'sepo-dictionary'), 403);
         }
-        return self::ok(['url' => Settings::indexUrl()], __('Moved to the trash.', 'sepo-dictionary'));
+        return self::ok(['url' => Dictionaries::homeUrl((int) $s['dictionary'])], __('Moved to the trash.', 'sepo-dictionary'));
     }
 
     public static function moderate(\WP_REST_Request $r): \WP_REST_Response|\WP_Error
@@ -236,6 +277,9 @@ final class Rest
         $p = Proposals::get((int) ($b['id'] ?? 0));
         if ($p === null) {
             return self::fail(__('That suggestion could not be found.', 'sepo-dictionary'), 404);
+        }
+        if (!Plugin::canManage((int) $p['dict_id'])) {
+            return self::denied();
         }
         $action = (string) ($b['action'] ?? '');
         $note = Entry::line($b['note'] ?? '', 255);
@@ -260,8 +304,15 @@ final class Rest
 
     public static function restore(\WP_REST_Request $r): \WP_REST_Response|\WP_Error
     {
+        $row = History::get((int) (self::body($r)['id'] ?? 0));
+        if ($row === null) {
+            return self::fail(__('That version could not be found.', 'sepo-dictionary'), 404);
+        }
+        if (!Plugin::canManage(Dictionaries::forEntry((int) $row['entry_id']))) {
+            return self::denied();
+        }
         try {
-            $id = History::restore((int) (self::body($r)['id'] ?? 0), get_current_user_id());
+            $id = History::restore((int) $row['id'], get_current_user_id());
         } catch (\Throwable $e) {
             return self::failFrom($e);
         }

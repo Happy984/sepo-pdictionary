@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SepoDictionary\Admin;
 
+use SepoDictionary\Dictionaries;
 use SepoDictionary\Entry;
 use SepoDictionary\Plugin;
 use SepoDictionary\PostType;
@@ -16,15 +17,17 @@ defined('ABSPATH') || exit;
  * history like any other edit.
  *
  * CSV columns (a header row names them; order does not matter):
- *   term, pronunciation, pos, language, category, tags, definition, example,
- *   synonyms, antonyms, related, etymology, notes, source
- * Several rows with the same term and language become one entry with
- * several meanings.
+ *   dictionary, term, pronunciation, pos, language, category, tags,
+ *   definition, example, synonyms, antonyms, related, etymology, notes, source
+ * Several rows with the same dictionary, term and language become one entry
+ * with several meanings. "dictionary" is a dictionary's slug or name; rows
+ * that name none, or one that does not exist, go into the dictionary chosen
+ * on the import form.
  */
 final class Transfer
 {
     public const PAGE = 'sepo-dictionary-transfer';
-    public const COLUMNS = ['term', 'pronunciation', 'pos', 'language', 'category', 'tags', 'definition', 'example', 'synonyms', 'antonyms', 'related', 'etymology', 'notes', 'source'];
+    public const COLUMNS = ['dictionary', 'term', 'pronunciation', 'pos', 'language', 'category', 'tags', 'definition', 'example', 'synonyms', 'antonyms', 'related', 'etymology', 'notes', 'source'];
 
     public static function hook(): void
     {
@@ -68,6 +71,7 @@ final class Transfer
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
               <input type="hidden" name="action" value="sepo_dictionary_export">
               <?php wp_nonce_field('sepo_dictionary_export'); ?>
+              <?php echo self::dictSelect('dict', __('Dictionary', 'sepo-dictionary'), true); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
               <p><label><input type="checkbox" name="all" value="1"> <?php esc_html_e('Include drafts and private entries', 'sepo-dictionary'); ?></label></p>
               <p><button class="button button-primary" name="format" value="json"><?php esc_html_e('Download JSON', 'sepo-dictionary'); ?></button>
                 <button class="button" name="format" value="csv"><?php esc_html_e('Download CSV', 'sepo-dictionary'); ?></button></p>
@@ -78,12 +82,13 @@ final class Transfer
             <h2><?php esc_html_e('Import', 'sepo-dictionary'); ?></h2>
             <p><?php
               /* translators: %s: list of column names */
-              echo esc_html(sprintf(__('Upload a JSON file exported from this plugin, or a CSV file with a header row using these columns: %s. Rows with the same word and language become one entry with several meanings.', 'sepo-dictionary'), implode(', ', self::COLUMNS)));
+              echo esc_html(sprintf(__('Upload a JSON file exported from this plugin, or a CSV file with a header row using these columns: %s. Rows with the same dictionary, word and language become one entry with several meanings.', 'sepo-dictionary'), implode(', ', self::COLUMNS)));
             ?></p>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data">
               <input type="hidden" name="action" value="sepo_dictionary_import">
               <?php wp_nonce_field('sepo_dictionary_import'); ?>
               <p><input type="file" name="file" accept=".json,.csv,application/json,text/csv" required></p>
+              <?php echo self::dictSelect('dict', __('Dictionary for rows that name none', 'sepo-dictionary'), false); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
               <p><label for="sdict-mode"><strong><?php esc_html_e('When a word is already in the dictionary', 'sepo-dictionary'); ?></strong></label><br>
                 <select name="mode" id="sdict-mode">
                   <option value="merge"><?php esc_html_e('Add any new meanings to it, and fill in empty details', 'sepo-dictionary'); ?></option>
@@ -101,6 +106,22 @@ final class Transfer
         <?php
     }
 
+    /** A choice of dictionary for the forms above, when the site has more than one. */
+    private static function dictSelect(string $name, string $label, bool $all): string
+    {
+        if (!Dictionaries::many()) {
+            return '';
+        }
+        $h = '<p><label for="sdict-x-' . esc_attr($name . ($all ? 'e' : 'i')) . '"><strong>' . esc_html($label) . '</strong></label><br><select name="' . esc_attr($name) . '" id="sdict-x-' . esc_attr($name . ($all ? 'e' : 'i')) . '">';
+        if ($all) {
+            $h .= '<option value="">' . esc_html__('All dictionaries', 'sepo-dictionary') . '</option>';
+        }
+        foreach (Dictionaries::all() as $t) {
+            $h .= '<option value="' . (int) $t->term_id . '"' . selected(!$all && (int) $t->term_id === Dictionaries::defaultId(), true, false) . '>' . esc_html($t->name) . '</option>';
+        }
+        return $h . '</select></p>';
+    }
+
     public static function export(): void
     {
         if (!Plugin::canManage()) {
@@ -108,6 +129,7 @@ final class Transfer
         }
         check_admin_referer('sepo_dictionary_export');
         $format = ($_POST['format'] ?? '') === 'csv' ? 'csv' : 'json';
+        $dict = isset($_POST['dict']) ? absint($_POST['dict']) : 0;
         $ids = get_posts([
             'post_type'      => PostType::TYPE,
             'post_status'    => !empty($_POST['all']) ? ['publish', 'draft', 'pending', 'private'] : ['publish'],
@@ -115,8 +137,8 @@ final class Transfer
             'orderby'        => 'title',
             'order'          => 'ASC',
             'fields'         => 'ids',
-        ]);
-        $name = 'dictionary-' . gmdate('Y-m-d') . '.' . $format;
+        ] + ($dict > 0 ? ['tax_query' => [['taxonomy' => Dictionaries::TAX, 'field' => 'term_id', 'terms' => [$dict]]]] : []));
+        $name = ($dict > 0 ? Dictionaries::slug($dict) . '-' : 'dictionary-') . gmdate('Y-m-d') . '.' . $format;
         nocache_headers();
         header('Content-Disposition: attachment; filename="' . $name . '"');
 
@@ -127,6 +149,8 @@ final class Transfer
                 $s = Entry::get((int) $id);
                 if ($s !== null) {
                     $s['audio_url'] = Entry::audioUrl($s);
+                    // Named by slug: term ids mean nothing on another site.
+                    $s['dictionary'] = Dictionaries::slug((int) $s['dictionary']);
                     $out[] = $s;
                 }
             }
@@ -148,7 +172,7 @@ final class Transfer
                 // Details are written on the first meaning's row only.
                 $first = $i === 0;
                 fputcsv($fh, array_map([self::class, 'cell'], [
-                    $s['term'], $first ? $s['pronunciation'] : '', $first ? $s['pos'] : '', $s['language'], $first ? $s['category'] : '', $first ? implode(', ', $s['tags']) : '',
+                    Dictionaries::slug((int) $s['dictionary']), $s['term'], $first ? $s['pronunciation'] : '', $first ? $s['pos'] : '', $s['language'], $first ? $s['category'] : '', $first ? implode(', ', $s['tags']) : '',
                     $d['text'], $d['example'],
                     $first ? implode(', ', $s['synonyms']) : '', $first ? implode(', ', $s['antonyms']) : '', $first ? implode(', ', $s['related']) : '',
                     $first ? $s['etymology'] : '', $first ? $s['notes'] : '', $first ? $s['source'] : '',
@@ -188,7 +212,8 @@ final class Transfer
         $mode = in_array($_POST['mode'] ?? '', ['merge', 'skip', 'replace'], true) ? (string) $_POST['mode'] : 'merge';
         $lang = Entry::line(wp_unslash((string) ($_POST['language'] ?? '')), 100);
         $draft = !empty($_POST['draft']);
-        $r = self::apply($rows, $mode, $lang, $draft);
+        $dict = isset($_POST['dict']) ? absint($_POST['dict']) : 0;
+        $r = self::apply($rows, $mode, $lang, $draft, Dictionaries::id($dict) ?: Dictionaries::defaultId());
         wp_safe_redirect(self::back(['sd_done' => 1, 'sd_added' => $r['added'], 'sd_updated' => $r['updated'], 'sd_skipped' => $r['skipped']]));
         exit;
     }
@@ -249,7 +274,7 @@ final class Transfer
             if ($term === '') {
                 continue;
             }
-            $key = Entry::fold($term) . '|' . Entry::fold($row['language'] ?? '');
+            $key = Entry::fold($row['dictionary'] ?? '') . '|' . Entry::fold($term) . '|' . Entry::fold($row['language'] ?? '');
             if (!isset($entries[$key])) {
                 $entries[$key] = $row + ['definitions' => []];
             }
@@ -270,11 +295,15 @@ final class Transfer
      * @param list<array<string,mixed>> $rows
      * @return array{added:int,updated:int,skipped:int}
      */
-    public static function apply(array $rows, string $mode, string $language, bool $draft): array
+    public static function apply(array $rows, string $mode, string $language, bool $draft, int $dict = 0): array
     {
         $r = ['added' => 0, 'updated' => 0, 'skipped' => 0];
         $uid = get_current_user_id();
+        $dict = $dict > 0 ? $dict : Dictionaries::defaultId();
         foreach ($rows as $row) {
+            // A named dictionary that exists on this site is used; anything else goes to the chosen one.
+            $named = is_scalar($row['dictionary'] ?? null) && !is_int($row['dictionary']) && !ctype_digit((string) $row['dictionary']) ? Dictionaries::id((string) $row['dictionary']) : 0;
+            $row['dictionary'] = $named > 0 ? $named : $dict;
             if (trim((string) ($row['language'] ?? '')) === '' && $language !== '') {
                 $row['language'] = $language;
             }
@@ -285,7 +314,7 @@ final class Transfer
                 $r['skipped']++;
                 continue;
             }
-            $existing = Entry::find($clean['term'], $clean['language']);
+            $existing = Entry::find($clean['term'], $clean['language'], 0, (int) $clean['dictionary']);
             $ctx = ['user_id' => $uid, 'actor_id' => $uid, 'summary' => __('Imported', 'sepo-dictionary')];
             try {
                 if ($existing < 1) {
@@ -303,6 +332,7 @@ final class Transfer
                 $cur = Entry::get($existing) ?? [];
                 if ($mode === 'replace') {
                     $clean['status'] = $cur['status'] ?? 'publish';
+                    $clean['dictionary'] = $cur['dictionary'] ?? $clean['dictionary'];
                     $clean['audio'] = $cur['audio'] ?? 0;
                     $next = $clean;
                 } else {

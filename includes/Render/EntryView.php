@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SepoDictionary\Render;
 
+use SepoDictionary\Dictionaries;
 use SepoDictionary\Entry;
 use SepoDictionary\History;
 use SepoDictionary\Plugin;
@@ -23,12 +24,13 @@ final class EntryView
         if ($s === null) {
             return '';
         }
-        $manager = Plugin::canManage();
+        $dict = (int) $s['dictionary'];
+        $manager = Plugin::canManage($dict);
         if ($s['status'] !== 'publish' && !$manager) {
             return '';
         }
         $compact = !empty($o['compact']);
-        $base = Settings::indexUrl();
+        $base = Dictionaries::homeUrl($dict);
         $tab = sanitize_key((string) ($_GET['sd_tab'] ?? 'meaning')); // phpcs:ignore WordPress.Security.NonceVerification
         if (!in_array($tab, ['meaning', 'proposals', 'history'], true) || $compact) {
             $tab = 'meaning';
@@ -41,8 +43,12 @@ final class EntryView
         $h = '';
         if (!$compact) {
             $letter = Entry::letterFor($s['term']);
+            $crumbs = Dictionaries::many()
+                ? '<a href="' . esc_url(Settings::indexUrl()) . '">' . Icons::get('book', 14) . esc_html__('Dictionaries', 'sepo-dictionary') . '</a>'
+                    . '<span aria-hidden="true">/</span><a href="' . esc_url($base) . '">' . esc_html(Dictionaries::name($dict)) . '</a>'
+                : '<a href="' . esc_url($base) . '">' . Icons::get('book', 14) . esc_html__('Dictionary', 'sepo-dictionary') . '</a>';
             $h .= '<div class="sdict-topbar"><nav class="sdict-crumbs" aria-label="' . esc_attr__('Breadcrumb', 'sepo-dictionary') . '">'
-                . '<a href="' . esc_url($base) . '">' . Icons::get('book', 14) . esc_html__('Dictionary', 'sepo-dictionary') . '</a>'
+                . $crumbs
                 . '<span aria-hidden="true">/</span><a href="' . esc_url(Parts::url($base, ['sd_letter' => $letter])) . '">' . esc_html(Entry::letterLabel($letter)) . '</a></nav>'
                 . Parts::search($base, '', '', true) . '</div>';
         }
@@ -69,7 +75,7 @@ final class EntryView
 
         if (!$compact) {
             $h .= '<section class="sdict-panel" role="tabpanel" id="sdict-panel-proposals" aria-labelledby="sdict-tab-proposals"' . ($tab !== 'proposals' ? ' hidden' : '') . '>';
-            $h .= '<p class="sdict-rules">' . esc_html(ProposalView::rules()) . '</p>';
+            $h .= '<p class="sdict-rules">' . esc_html(ProposalView::rules($dict)) . '</p>';
             $h .= $live !== []
                 ? ProposalView::list($live)
                 : '<div class="sdict-empty sdict-empty--sm"><p>' . esc_html__('No suggestions are waiting for votes on this word.', 'sepo-dictionary') . '</p></div>';
@@ -83,7 +89,7 @@ final class EntryView
         }
         $h .= '</article>';
 
-        return Parts::scope($h, 'sdict-app sdict-entry-page', ['data-sdict-app' => '1']);
+        return Parts::scope($h, 'sdict-app sdict-entry-page', ['data-sdict-app' => '1'] + Parts::dictAttrs($dict));
     }
 
     private static function head(int $id, array $s, bool $manager, bool $compact): string
@@ -106,13 +112,13 @@ final class EntryView
         if ($s['language'] !== '') {
             $t = get_term_by('name', $s['language'], PostType::LANGUAGE);
             $h .= $t instanceof \WP_Term
-                ? '<a class="sdict-tag sdict-tag--lang" href="' . esc_url(Parts::url(Settings::indexUrl(), ['sd_lang' => $t->slug])) . '">' . esc_html($s['language']) . '</a>'
+                ? '<a class="sdict-tag sdict-tag--lang" href="' . esc_url(Parts::url(Dictionaries::homeUrl((int) $s['dictionary']), ['sd_lang' => $t->slug])) . '">' . esc_html($s['language']) . '</a>'
                 : '<span class="sdict-tag sdict-tag--lang">' . esc_html($s['language']) . '</span>';
         }
         if ($s['category'] !== '') {
             $t = get_term_by('name', $s['category'], PostType::CATEGORY);
             $h .= $t instanceof \WP_Term
-                ? '<a class="sdict-tag" href="' . esc_url(Parts::url(Settings::indexUrl(), ['sd_cat' => $t->slug])) . '">' . esc_html($s['category']) . '</a>'
+                ? '<a class="sdict-tag" href="' . esc_url(Parts::url(Dictionaries::homeUrl((int) $s['dictionary']), ['sd_cat' => $t->slug])) . '">' . esc_html($s['category']) . '</a>'
                 : '<span class="sdict-tag">' . esc_html($s['category']) . '</span>';
         }
         $h .= Parts::status($s['status']);
@@ -137,7 +143,7 @@ final class EntryView
                 $pending[$p['target']] = ($pending[$p['target']] ?? 0) + 1;
             }
         }
-        $canPropose = Plugin::canPropose() && !$compact;
+        $canPropose = Plugin::canPropose((int) $s['dictionary']) && !$compact;
         $h = '';
         if ($s['definitions'] === []) {
             $h .= '<p class="sdict-muted">' . esc_html__('No meaning has been recorded yet.', 'sepo-dictionary') . '</p>';
@@ -169,7 +175,7 @@ final class EntryView
         $rel = '';
         foreach (['synonyms' => __('Synonyms', 'sepo-dictionary'), 'antonyms' => __('Antonyms', 'sepo-dictionary'), 'related' => __('See also', 'sepo-dictionary')] as $k => $label) {
             if ($s[$k] !== []) {
-                $rel .= '<div class="sdict-rel__row"><dt>' . esc_html($label) . '</dt><dd>' . Parts::chips($s[$k], $s['language']) . '</dd></div>';
+                $rel .= '<div class="sdict-rel__row"><dt>' . esc_html($label) . '</dt><dd>' . Parts::chips($s[$k], $s['language'], (int) $s['dictionary']) . '</dd></div>';
             }
         }
         if ($rel !== '') {
@@ -226,13 +232,14 @@ final class EntryView
     /** The invitation to improve the entry. */
     private static function contribute(int $id, array $s): string
     {
-        if (Plugin::canPropose()) {
+        $dict = (int) $s['dictionary'];
+        if (Plugin::canPropose($dict)) {
             return '<div class="sdict-contribute"><div class="sdict-contribute__text"><strong>' . esc_html__('Know this word well?', 'sepo-dictionary') . '</strong>'
                 . '<span>' . esc_html__('Suggest another meaning or a correction. Members vote on its accuracy, and the suggestion that wins is merged into this entry.', 'sepo-dictionary') . '</span></div>'
                 . '<div class="sdict-contribute__actions"><button type="button" class="sdict-btn sdict-btn--primary" data-sdict-act="propose-add">' . Icons::get('plus', 15) . esc_html__('Suggest a meaning', 'sepo-dictionary') . '</button>'
                 . '<button type="button" class="sdict-btn" data-sdict-act="propose-edit">' . Icons::get('edit', 14) . esc_html__('Suggest a correction', 'sepo-dictionary') . '</button></div></div>';
         }
-        if (!is_user_logged_in() && (int) Settings::get('allow_proposals') === 1) {
+        if (!is_user_logged_in() && Plugin::proposalsOpen($dict)) {
             return '<div class="sdict-contribute"><div class="sdict-contribute__text"><strong>' . esc_html__('Know this word well?', 'sepo-dictionary') . '</strong>'
                 . '<span>' . esc_html__('Sign in to suggest a meaning or a correction, and to vote on other suggestions.', 'sepo-dictionary') . '</span></div>'
                 . '<div class="sdict-contribute__actions"><a class="sdict-btn" href="' . esc_url(Parts::login()) . '">' . esc_html__('Sign in', 'sepo-dictionary') . '</a></div></div>';

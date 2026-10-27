@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Plugin Name:       Sepo Dictionary
- * Description:       A community dictionary. Visitors look words up by search or by letter; members suggest new words, new meanings and corrections, and the community votes on their accuracy. Suggestions that win the vote are merged into the entry, and every change is kept in the entry's history. Runs on WordPress alone.
- * Version:           1.2.0
+ * Description:       One or more community dictionaries. Visitors look words up by search or by letter; members suggest new words, new meanings and corrections, and the community votes on their accuracy. Suggestions that win the vote are merged into the entry, and every change is kept in the entry's history. Runs on WordPress alone.
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      8.1
  * Author:            Euneolink Solutions
@@ -28,7 +29,7 @@ if (version_compare(PHP_VERSION, '8.1', '<')) {
     return;
 }
 
-define('SDICT_VERSION', '1.2.0');
+define('SDICT_VERSION', '1.3.0');
 define('SDICT_FILE', __FILE__);
 define('SDICT_DIR', plugin_dir_path(__FILE__));
 define('SDICT_URL', plugin_dir_url(__FILE__));

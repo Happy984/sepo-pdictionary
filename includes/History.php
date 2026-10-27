@@ -116,6 +116,8 @@ final class History
         if (in_array($state['status'] ?? '', ['trash', ''], true)) {
             $state['status'] = $current['status'];
         }
+        // A restore brings back the wording; the entry stays in the dictionary it is in now.
+        $state['dictionary'] = $current['dictionary'];
         if (Entry::same($current, Entry::clean($state, $current))) {
             throw new \InvalidArgumentException(__('The entry already matches that version.', 'sepo-dictionary'));
         }

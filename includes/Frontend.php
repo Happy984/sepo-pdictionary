@@ -13,10 +13,14 @@ defined('ABSPATH') || exit;
  * The dictionary on the site: entry pages, the shortcodes, and the
  * scripts and styles they need.
  *
- *   [sepo_dictionary]                    the full dictionary (per_page, word_of_day, letters, language, category, title)
- *   [sepo_word term="ubuntu"]            one entry, compact (or id="12")
- *   [sepo_word_of_day]                   today's word (language)
- *   [sepo_define term="ubuntu"]text[/sepo_define]   text that shows the meaning on hover or focus
+ *   [sepo_dictionary]                    the full dictionary (dictionary, per_page, word_of_day, letters, language, category, title)
+ *   [sepo_word term="ubuntu"]            one entry, compact (or id="12"; dictionary, language)
+ *   [sepo_word_of_day]                   today's word (dictionary, language)
+ *   [sepo_define term="ubuntu"]text[/sepo_define]   text that shows the meaning on hover or focus (dictionary, language)
+ *
+ * dictionary is a dictionary's slug or name. Without it, [sepo_dictionary]
+ * shows the dictionary named in the address (/dictionary/<dictionary>/),
+ * or the list of dictionaries when the site has several.
  */
 final class Frontend
 {
@@ -100,9 +104,14 @@ final class Frontend
             return;
         }
         $slug = sanitize_title(wp_unslash((string) $_GET['sd_term'])); // phpcs:ignore WordPress.Security.NonceVerification
-        $post = $slug !== '' ? get_page_by_path($slug, OBJECT, PostType::TYPE) : null;
-        if ($post instanceof \WP_Post && $post->post_status === 'publish') {
-            wp_safe_redirect(Entry::url((int) $post->ID), 301);
+        $dict = Routes::current();
+        $id = $dict > 0 ? Routes::find($slug, $dict) : 0;
+        if ($id < 1) {
+            $post = $slug !== '' ? get_page_by_path($slug, OBJECT, PostType::TYPE) : null;
+            $id = $post instanceof \WP_Post ? (int) $post->ID : 0;
+        }
+        if ($id > 0 && get_post_status($id) === 'publish') {
+            wp_safe_redirect(Entry::url($id), 301);
             exit;
         }
     }
@@ -143,7 +152,19 @@ final class Frontend
     /** @return array<string,mixed> */
     private static function config(): array
     {
-        $manager = Plugin::canManage();
+        $manager = Plugin::siteManager();
+        $dicts = [];
+        foreach (Dictionaries::all() as $t) {
+            $id = (int) $t->term_id;
+            $dicts[] = [
+                'id'         => $id,
+                'name'       => (string) $t->name,
+                'canManage'  => Plugin::canManage($id),
+                'canPropose' => Plugin::canPropose($id),
+                'reviewUrl'  => Dictionaries::homeUrl($id, ['sd_view' => 'review']),
+                'pos'        => Dictionaries::partsOfSpeech($id),
+            ];
+        }
         return [
             'api'             => esc_url_raw(rest_url(Rest::NS)),
             // Only signed-in visitors get a nonce: a cached page would carry a stale one for guests.
@@ -151,6 +172,8 @@ final class Frontend
             'canManage'       => $manager,
             'siteName'        => wp_specialchars_decode((string) get_bloginfo('name'), ENT_QUOTES),
             'reviewUrl'       => Settings::indexUrl(['sd_view' => 'review']),
+            'dicts'           => $dicts,
+            'defaultDict'     => Dictionaries::many() ? 0 : Dictionaries::defaultId(),
             'pos'             => Settings::partsOfSpeech(),
             'languages'       => PostType::names(PostType::LANGUAGE),
             'categories'      => PostType::names(PostType::CATEGORY),
@@ -197,6 +220,9 @@ final class Frontend
             'pronPh'           => __('e.g. /ʊˈbʊntʊ/', 'sepo-dictionary'),
             'pos'              => __('Part of speech', 'sepo-dictionary'),
             'language'         => __('Language', 'sepo-dictionary'),
+            'dictionary'       => __('Dictionary', 'sepo-dictionary'),
+            'chooseDict'       => __('Choose a dictionary', 'sepo-dictionary'),
+            'dictRequired'     => __('Choose the dictionary the word belongs in.', 'sepo-dictionary'),
             'category'         => __('Category', 'sepo-dictionary'),
             'visibility'       => __('Visibility', 'sepo-dictionary'),
             'published'        => __('Published', 'sepo-dictionary'),
@@ -328,8 +354,10 @@ final class Frontend
             'url'         => Entry::url($id),
             'inDefinedTermSet' => [
                 '@type' => 'DefinedTermSet',
-                'name'  => wp_specialchars_decode((string) get_bloginfo('name'), ENT_QUOTES) . ' ' . __('Dictionary', 'sepo-dictionary'),
-                'url'   => Settings::indexUrl(),
+                'name'  => Dictionaries::many()
+                    ? Dictionaries::name((int) $s['dictionary'])
+                    : wp_specialchars_decode((string) get_bloginfo('name'), ENT_QUOTES) . ' ' . __('Dictionary', 'sepo-dictionary'),
+                'url'   => Dictionaries::homeUrl((int) $s['dictionary']),
             ],
         ];
         if ($s['language'] !== '') {
@@ -344,18 +372,35 @@ final class Frontend
     /** @param array<string,string>|string $atts */
     public static function dictionaryShortcode($atts = []): string
     {
-        $a = shortcode_atts(['per_page' => '', 'word_of_day' => '1', 'letters' => '1', 'language' => '', 'category' => '', 'title' => ''], is_array($atts) ? $atts : [], 'sepo_dictionary');
+        $a = shortcode_atts(['dictionary' => '', 'per_page' => '', 'word_of_day' => '1', 'letters' => '1', 'language' => '', 'category' => '', 'title' => ''], is_array($atts) ? $atts : [], 'sepo_dictionary');
         self::enqueue();
-        return AppView::render($a);
+        $fixed = Dictionaries::id(trim((string) $a['dictionary']));
+        $route = Routes::current();
+        if ($fixed > 0) {
+            // A dictionary placed on a page of its own keeps its links on that page.
+            $dict = $fixed;
+            $base = is_singular() && $route === 0 ? (string) get_permalink() : Dictionaries::homeUrl($fixed);
+        } elseif ($route > 0) {
+            $dict = $route;
+            $base = Dictionaries::homeUrl($route);
+        } elseif (!Dictionaries::many()) {
+            $dict = Dictionaries::defaultId();
+            $base = is_singular() ? (string) get_permalink() : Settings::indexUrl();
+        } else {
+            $dict = 0;
+            $base = is_singular() ? (string) get_permalink() : Settings::indexUrl();
+        }
+        return AppView::render($a, $dict, $base);
     }
 
     /** @param array<string,string>|string $atts */
     public static function wordShortcode($atts = []): string
     {
-        $a = shortcode_atts(['term' => '', 'id' => '', 'language' => ''], is_array($atts) ? $atts : [], 'sepo_word');
+        $a = shortcode_atts(['term' => '', 'id' => '', 'language' => '', 'dictionary' => ''], is_array($atts) ? $atts : [], 'sepo_word');
         $id = (int) $a['id'];
         if ($id < 1 && $a['term'] !== '') {
-            $id = ($a['language'] !== '' ? Entry::find($a['term'], $a['language']) : 0) ?: Entry::findAny($a['term']);
+            $dict = Dictionaries::id(trim((string) $a['dictionary']));
+            $id = ($a['language'] !== '' ? Entry::find($a['term'], $a['language'], 0, $dict) : 0) ?: Entry::findAny($a['term'], $dict);
         }
         if ($id < 1 || get_post_status($id) !== 'publish' || self::$rendering) {
             return '';
@@ -372,13 +417,18 @@ final class Frontend
     /** @param array<string,string>|string $atts */
     public static function wodShortcode($atts = []): string
     {
-        $a = shortcode_atts(['language' => '', 'title' => __('Word of the day', 'sepo-dictionary')], is_array($atts) ? $atts : [], 'sepo_word_of_day');
-        $post = Entry::wordOfDay(sanitize_title($a['language']));
+        $a = shortcode_atts(['language' => '', 'dictionary' => '', 'title' => __('Word of the day', 'sepo-dictionary')], is_array($atts) ? $atts : [], 'sepo_word_of_day');
+        $dict = Dictionaries::id(trim((string) $a['dictionary']));
+        $post = Entry::wordOfDay(sanitize_title($a['language']), $dict);
         if (!$post instanceof \WP_Post) {
             return '';
         }
         self::enqueue();
-        return '<div class="sdict-scope sdict-wod-only" data-sdict-app="1"><div class="sdict-wrap">' . EntryView::card($post, (string) $a['title']) . '</div></div>';
+        $attrs = '';
+        foreach (Render\Parts::dictAttrs($dict) as $k => $v) {
+            $attrs .= ' ' . $k . '="' . esc_attr($v) . '"';
+        }
+        return '<div class="sdict-scope sdict-wod-only" data-sdict-app="1"' . $attrs . '><div class="sdict-wrap">' . EntryView::card($post, (string) $a['title']) . '</div></div>';
     }
 
     /**
@@ -388,13 +438,14 @@ final class Frontend
      */
     public static function defineShortcode($atts = [], ?string $content = null): string
     {
-        $a = shortcode_atts(['term' => '', 'language' => ''], is_array($atts) ? $atts : [], 'sepo_define');
+        $a = shortcode_atts(['term' => '', 'language' => '', 'dictionary' => ''], is_array($atts) ? $atts : [], 'sepo_define');
+        $dict = Dictionaries::id(trim((string) $a['dictionary']));
         $text = trim(wp_strip_all_tags((string) $content));
         $term = trim($a['term']) !== '' ? $a['term'] : $text;
         if ($text === '') {
             $text = $term;
         }
-        $id = ($a['language'] !== '' ? Entry::find($term, $a['language']) : 0) ?: Entry::findAny($term);
+        $id = ($a['language'] !== '' ? Entry::find($term, $a['language'], 0, $dict) : 0) ?: Entry::findAny($term, $dict);
         if ($id < 1 || get_post_status($id) !== 'publish') {
             return esc_html($text);
         }

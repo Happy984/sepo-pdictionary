@@ -34,6 +34,7 @@ final class Embeds
             'title'           => __('Dictionary', 'sepo-dictionary'),
             'category'        => 'widgets',
             'attributes'      => [
+                'dictionary' => ['type' => 'string', 'default' => ''],
                 'perPage'   => ['type' => 'number', 'default' => 0],
                 'wordOfDay' => ['type' => 'boolean', 'default' => true],
                 'letters'   => ['type' => 'boolean', 'default' => true],
@@ -41,6 +42,7 @@ final class Embeds
                 'title'     => ['type' => 'string', 'default' => ''],
             ],
             'render_callback' => static fn(array $a): string => Frontend::dictionaryShortcode([
+                'dictionary'  => (string) ($a['dictionary'] ?? ''),
                 'per_page'    => (string) (int) ($a['perPage'] ?? 0),
                 'word_of_day' => !empty($a['wordOfDay']) ? '1' : '0',
                 'letters'     => !empty($a['letters']) ? '1' : '0',
@@ -52,16 +54,30 @@ final class Embeds
             'api_version'     => 2,
             'title'           => __('Dictionary word', 'sepo-dictionary'),
             'category'        => 'widgets',
-            'attributes'      => ['term' => ['type' => 'string', 'default' => '']],
-            'render_callback' => static fn(array $a): string => Frontend::wordShortcode(['term' => (string) ($a['term'] ?? '')]),
+            'attributes'      => ['term' => ['type' => 'string', 'default' => ''], 'dictionary' => ['type' => 'string', 'default' => '']],
+            'render_callback' => static fn(array $a): string => Frontend::wordShortcode(['term' => (string) ($a['term'] ?? ''), 'dictionary' => (string) ($a['dictionary'] ?? '')]),
         ]);
         register_block_type('sepo-dictionary/word-of-day', [
             'api_version'     => 2,
             'title'           => __('Word of the day', 'sepo-dictionary'),
             'category'        => 'widgets',
-            'attributes'      => ['language' => ['type' => 'string', 'default' => ''], 'title' => ['type' => 'string', 'default' => '']],
-            'render_callback' => static fn(array $a): string => Frontend::wodShortcode(array_filter(['language' => (string) ($a['language'] ?? ''), 'title' => (string) ($a['title'] ?? '')])),
+            'attributes'      => ['language' => ['type' => 'string', 'default' => ''], 'dictionary' => ['type' => 'string', 'default' => ''], 'title' => ['type' => 'string', 'default' => '']],
+            'render_callback' => static fn(array $a): string => Frontend::wodShortcode(array_filter(['language' => (string) ($a['language'] ?? ''), 'dictionary' => (string) ($a['dictionary'] ?? ''), 'title' => (string) ($a['title'] ?? '')])),
         ]);
+    }
+
+    /**
+     * Dictionaries for a builder's select: "the address decides" first, then each by slug.
+     *
+     * @return list<array{value:string,label:string}>
+     */
+    public static function dictionaryOptions(): array
+    {
+        $out = [['value' => '', 'label' => Dictionaries::many() ? __('All dictionaries (or the one in the address)', 'sepo-dictionary') : __('The dictionary', 'sepo-dictionary')]];
+        foreach (Dictionaries::all() as $t) {
+            $out[] = ['value' => (string) $t->slug, 'label' => (string) $t->name];
+        }
+        return $out;
     }
 
     public static function editorAssets(): void
@@ -74,7 +90,7 @@ final class Embeds
         foreach (is_array($terms) ? $terms : [] as $t) {
             $langs[] = ['value' => $t->slug, 'label' => $t->name];
         }
-        wp_add_inline_script('sepo-dictionary-blocks', 'window.SepoDictionaryBlocks=' . wp_json_encode(['languages' => $langs]) . ';', 'before');
+        wp_add_inline_script('sepo-dictionary-blocks', 'window.SepoDictionaryBlocks=' . wp_json_encode(['languages' => $langs, 'dictionaries' => self::dictionaryOptions()]) . ';', 'before');
         wp_set_script_translations('sepo-dictionary-blocks', 'sepo-dictionary');
     }
 }

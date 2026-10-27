@@ -1,7 +1,8 @@
 <?php
 /**
  * Removes the plugin's data when it is deleted, if the site chose that in
- * Dictionary → Settings. Otherwise entries, suggestions and history stay.
+ * Dictionary → Settings: every dictionary, entry, suggestion, vote and
+ * history row. Otherwise everything stays.
  */
 
 declare(strict_types=1);
@@ -19,7 +20,7 @@ if (is_array($sdSettings) && !empty($sdSettings['delete_on_uninstall'])) {
     foreach ($sdIds as $sdId) {
         wp_delete_post((int) $sdId, true);
     }
-    foreach (['sepo_word_language', 'sepo_word_category', 'sepo_word_tag'] as $sdTax) {
+    foreach (['sepo_dictionary', 'sepo_word_language', 'sepo_word_category', 'sepo_word_tag'] as $sdTax) {
         $sdTerms = $wpdb->get_col($wpdb->prepare("SELECT t.term_id FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = t.term_id WHERE tt.taxonomy = %s", $sdTax));
         foreach ($sdTerms as $sdTerm) {
             $wpdb->delete($wpdb->termmeta, ['term_id' => (int) $sdTerm]);
@@ -34,4 +35,5 @@ if (is_array($sdSettings) && !empty($sdSettings['delete_on_uninstall'])) {
     $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_sd\\_wod\\_%' OR option_name LIKE '\\_transient\\_timeout\\_sd\\_wod\\_%'");
     delete_option('sepo_dictionary_settings');
     delete_option('sepo_dictionary_version');
+    delete_option('default_term_sepo_dictionary');
 }

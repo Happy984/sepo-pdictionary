@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * the change in the entry's history.
  *
  * A "state" is the whole entry as one array:
- *   term, status, language, category, tags[], pronunciation, audio
+ *   term, status, dictionary (term id), language, category, tags[], pronunciation, audio
  *   (attachment id of a recorded pronunciation), pos,
  *   definitions[ {id, text, example} ], synonyms[], antonyms[], related[],
  *   etymology, notes, source
@@ -23,7 +23,7 @@ final class Entry
     public const LETTER = '_sd_letter';
 
     public const FIELDS = ['pronunciation', 'audio', 'pos', 'definitions', 'synonyms', 'antonyms', 'related', 'etymology', 'notes', 'source'];
-    public const STATE_KEYS = ['term', 'status', 'language', 'category', 'tags', 'pronunciation', 'audio', 'pos', 'definitions', 'synonyms', 'antonyms', 'related', 'etymology', 'notes', 'source'];
+    public const STATE_KEYS = ['term', 'status', 'dictionary', 'language', 'category', 'tags', 'pronunciation', 'audio', 'pos', 'definitions', 'synonyms', 'antonyms', 'related', 'etymology', 'notes', 'source'];
     public const LIST_KEYS = ['tags', 'synonyms', 'antonyms', 'related'];
     public const STATUSES = ['publish', 'draft', 'pending', 'private'];
 
@@ -106,9 +106,10 @@ final class Entry
         $lang = $names(PostType::LANGUAGE);
         $cat = $names(PostType::CATEGORY);
         return [
-            'term'     => (string) $post->post_title,
-            'status'   => (string) $post->post_status,
-            'language' => (string) ($lang[0] ?? ''),
+            'term'       => (string) $post->post_title,
+            'status'     => (string) $post->post_status,
+            'dictionary' => Dictionaries::forEntry((int) $post->ID),
+            'language'   => (string) ($lang[0] ?? ''),
             'category' => (string) ($cat[0] ?? ''),
             'tags'     => $names(PostType::TAG),
         ] + self::fields((int) $post->ID);
@@ -124,8 +125,11 @@ final class Entry
         return $t instanceof \WP_Term ? (string) get_term_meta($t->term_id, 'sd_code', true) : '';
     }
 
-    /** An entry with this headword in this language, if there is one (trash excluded). */
-    public static function find(string $term, string $language = '', int $except = 0): int
+    /**
+     * An entry with this headword in this language, if there is one (trash
+     * excluded). With a dictionary, only that dictionary is searched.
+     */
+    public static function find(string $term, string $language = '', int $except = 0, int $dict = 0): int
     {
         global $wpdb;
         $term = trim($term);
@@ -140,20 +144,35 @@ final class Entry
         ));
         foreach ($ids as $id) {
             $s = self::get((int) $id);
-            if ($s !== null && self::fold($s['language']) === self::fold($language)) {
+            if ($s !== null && self::fold($s['language']) === self::fold($language) && ($dict < 1 || (int) $s['dictionary'] === $dict)) {
                 return (int) $id;
             }
         }
         return 0;
     }
 
-    /** A published entry with this headword in any language, the earliest first. */
-    public static function findAny(string $term): int
+    /**
+     * A published entry with this headword in any language, the earliest
+     * first. With a dictionary, one in that dictionary comes first.
+     */
+    public static function findAny(string $term, int $dict = 0): int
     {
         global $wpdb;
         $term = trim($term);
         if ($term === '') {
             return 0;
+        }
+        if ($dict > 0) {
+            $own = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s AND tt.term_id = %d WHERE p.post_type = %s AND p.post_status = 'publish' AND p.post_title = %s ORDER BY p.ID ASC LIMIT 1",
+                Dictionaries::TAX,
+                $dict,
+                PostType::TYPE,
+                $term
+            ));
+            if ($own > 0) {
+                return $own;
+            }
         }
         return (int) $wpdb->get_var($wpdb->prepare(
             "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND post_title = %s ORDER BY ID ASC LIMIT 1",
@@ -205,17 +224,22 @@ final class Entry
             'post_excerpt' => self::snippet($clean, 300),
         ];
 
+        $current = $id !== null ? get_post($id) : null;
+        $fromDict = $current instanceof \WP_Post ? Dictionaries::forEntry($id) : 0;
         self::$writing = true;
+        Routes::$slugDict = $clean['dictionary'];
         try {
             if ($id === null) {
                 $post['post_author'] = (int) ($ctx['user_id'] ?? 0) ?: get_current_user_id();
                 $result = wp_insert_post(wp_slash($post), true);
             } else {
                 $post['ID'] = $id;
-                $current = get_post($id);
                 if ($current instanceof \WP_Post && $current->post_title !== $clean['term']) {
                     // A changed spelling gets a matching address; WordPress redirects the old one.
                     $post['post_name'] = '';
+                } elseif ($current instanceof \WP_Post && $fromDict !== $clean['dictionary']) {
+                    // A word moving to another dictionary needs an address that is free there.
+                    $post['post_name'] = sanitize_title($clean['term']);
                 }
                 $result = wp_update_post(wp_slash($post), true);
             }
@@ -223,6 +247,7 @@ final class Entry
                 throw new \RuntimeException($result->get_error_message());
             }
             $id = (int) $result;
+            wp_set_object_terms($id, [$clean['dictionary']], Dictionaries::TAX, false);
 
             $meta = [];
             foreach (self::FIELDS as $k) {
@@ -235,6 +260,7 @@ final class Entry
             self::setTerms($id, PostType::TAG, $clean['tags']);
         } finally {
             self::$writing = false;
+            Routes::$slugDict = 0;
         }
 
         unset(self::$memo[$id]);
@@ -273,6 +299,10 @@ final class Entry
     public static function same(array $a, array $b): bool
     {
         foreach (self::STATE_KEYS as $k) {
+            // States recorded before dictionaries existed do not name one.
+            if ($k === 'dictionary' && (empty($a[$k]) || empty($b[$k]))) {
+                continue;
+            }
             if (self::comparable($a[$k] ?? null) !== self::comparable($b[$k] ?? null)) {
                 return false;
             }
@@ -304,10 +334,12 @@ final class Entry
     {
         $pick = static fn(string $k) => array_key_exists($k, $in) ? $in[$k] : ($base[$k] ?? null);
         $status = (string) $pick('status');
+        $dict = Dictionaries::id($pick('dictionary'));
         $out = [
-            'term'     => self::line($pick('term'), 160),
-            'status'   => in_array($status, self::STATUSES, true) ? $status : 'publish',
-            'language' => self::line($pick('language'), 100),
+            'term'       => self::line($pick('term'), 160),
+            'status'     => in_array($status, self::STATUSES, true) ? $status : 'publish',
+            'dictionary' => $dict > 0 ? $dict : Dictionaries::defaultId(),
+            'language'   => self::line($pick('language'), 100),
             'category' => self::line($pick('category'), 100),
             'tags'     => self::listy($pick('tags'), 12),
         ];
@@ -505,7 +537,7 @@ final class Entry
     /**
      * One page of entries for browsing.
      *
-     * @param array{letter?:string,language?:string,category?:string,page?:int,per_page?:int,manager?:bool} $o
+     * @param array{dictionary?:int,letter?:string,language?:string,category?:string,page?:int,per_page?:int,manager?:bool} $o
      * @return array{posts:list<\WP_Post>,total:int,pages:int}
      */
     public static function browse(array $o): array
@@ -524,7 +556,7 @@ final class Entry
             $args['meta_key'] = self::LETTER;
             $args['meta_value'] = $letter;
         }
-        $tax = self::taxQuery((string) ($o['language'] ?? ''), (string) ($o['category'] ?? ''));
+        $tax = self::taxQuery((string) ($o['language'] ?? ''), (string) ($o['category'] ?? ''), (int) ($o['dictionary'] ?? 0));
         if ($tax !== []) {
             $args['tax_query'] = $tax;
         }
@@ -533,9 +565,12 @@ final class Entry
     }
 
     /** @return array<int|string,mixed> */
-    private static function taxQuery(string $language, string $category): array
+    private static function taxQuery(string $language, string $category, int $dict = 0): array
     {
         $tax = [];
+        if ($dict > 0) {
+            $tax[] = ['taxonomy' => Dictionaries::TAX, 'field' => 'term_id', 'terms' => [$dict], 'include_children' => false];
+        }
         if ($language !== '') {
             $tax[] = ['taxonomy' => PostType::LANGUAGE, 'field' => 'slug', 'terms' => [$language]];
         }
@@ -552,7 +587,7 @@ final class Entry
      * Ranked lookup: exact headword, then words that start with it, then
      * words that contain it, then synonyms, then meanings.
      *
-     * @param array{limit?:int,language?:string,category?:string,manager?:bool} $o
+     * @param array{limit?:int,dictionary?:int,language?:string,category?:string,manager?:bool} $o
      * @return list<\WP_Post>
      */
     public static function search(string $q, array $o = []): array
@@ -570,17 +605,8 @@ final class Entry
         $join = '';
         $where = '';
         $params = array_merge([PostType::TYPE], $statuses, [$like, $like]);
-        foreach ([PostType::LANGUAGE => (string) ($o['language'] ?? ''), PostType::CATEGORY => (string) ($o['category'] ?? '')] as $tax => $slug) {
-            if ($slug === '') {
-                continue;
-            }
-            $term = get_term_by('slug', $slug, $tax);
-            if (!$term instanceof \WP_Term) {
-                return [];
-            }
-            $alias = $tax === PostType::LANGUAGE ? 'trl' : 'trc';
-            $join .= " INNER JOIN {$wpdb->term_relationships} {$alias} ON {$alias}.object_id = p.ID";
-            $where .= $wpdb->prepare(" AND {$alias}.term_taxonomy_id = %d", (int) $term->term_taxonomy_id);
+        if (!self::termJoins((int) ($o['dictionary'] ?? 0), (string) ($o['language'] ?? ''), (string) ($o['category'] ?? ''), $join, $where)) {
+            return [];
         }
 
         // phpcs:ignore WordPress.DB.PreparedSQL -- placeholders are built above
@@ -629,7 +655,7 @@ final class Entry
      *
      * @return array<string,int>
      */
-    public static function letters(string $language = '', string $category = '', bool $manager = false): array
+    public static function letters(string $language = '', string $category = '', bool $manager = false, int $dict = 0): array
     {
         global $wpdb;
         $counts = array_fill_keys(self::LETTERS, 0);
@@ -637,17 +663,8 @@ final class Entry
         $in = implode(',', array_fill(0, count($statuses), '%s'));
         $join = '';
         $where = '';
-        foreach ([PostType::LANGUAGE => $language, PostType::CATEGORY => $category] as $tax => $slug) {
-            if ($slug === '') {
-                continue;
-            }
-            $term = get_term_by('slug', $slug, $tax);
-            if (!$term instanceof \WP_Term) {
-                return $counts;
-            }
-            $alias = $tax === PostType::LANGUAGE ? 'trl' : 'trc';
-            $join .= " INNER JOIN {$wpdb->term_relationships} {$alias} ON {$alias}.object_id = p.ID";
-            $where .= $wpdb->prepare(" AND {$alias}.term_taxonomy_id = %d", (int) $term->term_taxonomy_id);
+        if (!self::termJoins($dict, $language, $category, $join, $where)) {
+            return $counts;
         }
         // phpcs:ignore WordPress.DB.PreparedSQL -- placeholders are built above
         $rows = $wpdb->get_results($wpdb->prepare("SELECT pm.meta_value AS l, COUNT(*) AS n FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id{$join} WHERE pm.meta_key = %s AND p.post_type = %s AND p.post_status IN ($in){$where} GROUP BY pm.meta_value", self::LETTER, PostType::TYPE, ...$statuses), ARRAY_A);
@@ -659,21 +676,63 @@ final class Entry
         return $counts;
     }
 
-    /** How many published entries, optionally in one language. */
-    public static function total(string $language = ''): int
+    /** How many published entries, optionally in one dictionary, language and category. */
+    public static function total(string $language = '', int $dict = 0, string $category = ''): int
     {
-        if ($language === '') {
-            return (int) (wp_count_posts(PostType::TYPE)->publish ?? 0);
+        if ($dict < 1 && $category === '') {
+            if ($language === '') {
+                return (int) (wp_count_posts(PostType::TYPE)->publish ?? 0);
+            }
+            $t = get_term_by('slug', $language, PostType::LANGUAGE);
+            return $t instanceof \WP_Term ? (int) $t->count : 0;
         }
-        $t = get_term_by('slug', $language, PostType::LANGUAGE);
-        return $t instanceof \WP_Term ? (int) $t->count : 0;
+        $q = new \WP_Query([
+            'post_type'      => PostType::TYPE,
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'tax_query'      => self::taxQuery($language, $category, $dict),
+        ]);
+        return (int) $q->found_posts;
+    }
+
+    /**
+     * Joins and conditions that keep a query to one dictionary, language and
+     * category. False when a named language or category does not exist.
+     */
+    private static function termJoins(int $dict, string $language, string $category, string &$join, string &$where): bool
+    {
+        global $wpdb;
+        $want = [];
+        if ($dict > 0) {
+            $t = get_term($dict, Dictionaries::TAX);
+            if (!$t instanceof \WP_Term) {
+                return false;
+            }
+            $want['trd'] = (int) $t->term_taxonomy_id;
+        }
+        foreach (['trl' => [PostType::LANGUAGE, $language], 'trc' => [PostType::CATEGORY, $category]] as $alias => [$tax, $slug]) {
+            if ($slug === '') {
+                continue;
+            }
+            $term = get_term_by('slug', $slug, $tax);
+            if (!$term instanceof \WP_Term) {
+                return false;
+            }
+            $want[$alias] = (int) $term->term_taxonomy_id;
+        }
+        foreach ($want as $alias => $ttId) {
+            $join .= " INNER JOIN {$wpdb->term_relationships} {$alias} ON {$alias}.object_id = p.ID";
+            $where .= $wpdb->prepare(" AND {$alias}.term_taxonomy_id = %d", $ttId);
+        }
+        return true;
     }
 
     /** The same published entry all day; it changes at local midnight. */
-    public static function wordOfDay(string $language = ''): ?\WP_Post
+    public static function wordOfDay(string $language = '', int $dict = 0): ?\WP_Post
     {
         $day = wp_date('Y-m-d');
-        $key = 'sd_wod_' . md5($language . '|' . $day);
+        $key = 'sd_wod_' . md5($language . '|' . $dict . '|' . $day);
         $cached = get_transient($key);
         if (is_numeric($cached) && (int) $cached > 0) {
             $p = get_post((int) $cached);
@@ -682,7 +741,7 @@ final class Entry
             }
         }
         $args = ['post_type' => PostType::TYPE, 'post_status' => 'publish', 'posts_per_page' => 1, 'orderby' => 'ID', 'order' => 'ASC', 'fields' => 'ids'];
-        $tax = self::taxQuery($language, '');
+        $tax = self::taxQuery($language, '', $dict);
         if ($tax !== []) {
             $args['tax_query'] = $tax;
         }
@@ -690,7 +749,7 @@ final class Entry
         if ($count < 1) {
             return null;
         }
-        $args['offset'] = (int) (sprintf('%u', crc32($day . $language)) % $count);
+        $args['offset'] = (int) (sprintf('%u', crc32($day . $language . ($dict > 0 ? '|' . $dict : ''))) % $count);
         $ids = (new \WP_Query($args + ['no_found_rows' => true]))->posts;
         $id = (int) ($ids[0] ?? 0);
         if ($id < 1) {

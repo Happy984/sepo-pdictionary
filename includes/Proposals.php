@@ -14,8 +14,9 @@ defined('ABSPATH') || exit;
  *   meaning  add a meaning, replace one meaning with a better one, or remove one
  *   edit     change the other details: spelling, pronunciation, synonyms and so on
  *
+ * Every proposal belongs to one dictionary, whose voting rules apply to it.
  * Proposals that compete for the same thing share a group: new words with
- * the same spelling and language, or replacements and removals of the same
+ * the same spelling and language in the same dictionary, or replacements and removals of the same
  * meaning. Only the leader of a group can win; when it is merged the others
  * in the group are superseded. Added meanings and edits never block each
  * other: edits are merged field by field, and a field that changed since the
@@ -37,7 +38,7 @@ final class Proposals
     /**
      * Record a proposal from $in and open it for votes.
      *
-     * @param array<string,mixed> $in kind, op, entry_id, target, entry{...}, definitions[], definition{}, reason
+     * @param array<string,mixed> $in kind, op, entry_id, dictionary (for a new word), target, entry{...}, definitions[], definition{}, reason
      * @return array<string,mixed>
      */
     public static function create(array $in, int $userId): array
@@ -47,9 +48,24 @@ final class Proposals
         if (!in_array($kind, self::KINDS, true)) {
             throw new ProposalError(__('Choose what you are suggesting.', 'sepo-dictionary'));
         }
-        $manager = user_can($userId, (string) apply_filters('sepo_dictionary_manage_capability', 'edit_others_posts'));
-        $max = Settings::int('max_open');
-        if (!$manager && $max > 0 && self::liveCountForUser($userId) >= $max) {
+        if ($kind === 'new') {
+            $dict = Dictionaries::id($in['dictionary'] ?? (is_array($in['entry'] ?? null) ? ($in['entry']['dictionary'] ?? 0) : 0));
+            if ($dict < 1) {
+                if (Dictionaries::many()) {
+                    throw new ProposalError(__('Choose the dictionary the word belongs in.', 'sepo-dictionary'));
+                }
+                $dict = Dictionaries::defaultId();
+            }
+        } else {
+            $entryId = (int) ($in['entry_id'] ?? 0);
+            $dict = $entryId > 0 && get_post_type($entryId) === PostType::TYPE ? Dictionaries::forEntry($entryId) : 0;
+        }
+        $manager = Plugin::userCanManage($userId, $dict);
+        if (!$manager && $dict > 0 && !Dictionaries::on($dict, 'allow_proposals')) {
+            throw new ProposalError(__('This dictionary is not taking suggestions at the moment.', 'sepo-dictionary'));
+        }
+        $max = Dictionaries::int($dict, 'max_open');
+        if (!$manager && $max > 0 && self::liveCountForUser($userId, $dict) >= $max) {
             /* translators: %d: how many open proposals a member may have */
             throw new ProposalError(sprintf(__('You already have %d suggestions waiting for votes. Please wait for some of them to be settled.', 'sepo-dictionary'), $max));
         }
@@ -58,7 +74,8 @@ final class Proposals
         $row = ['kind' => $kind, 'op' => '', 'target' => '', 'entry_id' => 0, 'term' => '', 'language' => '', 'data' => [], 'base' => null];
 
         if ($kind === 'new') {
-            $data = Entry::clean(is_array($in['entry'] ?? null) ? $in['entry'] : []);
+            $data = Entry::clean(['dictionary' => $dict] + (is_array($in['entry'] ?? null) ? $in['entry'] : []));
+            $data['dictionary'] = $dict;
             unset($data['status']);
             // Recordings are added by editors, not through suggestions.
             $data['audio'] = 0;
@@ -69,16 +86,15 @@ final class Proposals
             if ($data['definitions'] === []) {
                 throw new ProposalError(__('Add at least one meaning.', 'sepo-dictionary'));
             }
-            $existing = Entry::find($data['term'], $data['language']);
+            $existing = Entry::find($data['term'], $data['language'], 0, $dict);
             if ($existing > 0 && get_post_status($existing) === 'publish') {
                 throw new ProposalError(__('That word is already in the dictionary. Open it to suggest a new meaning or a correction.', 'sepo-dictionary'), ['entry_url' => Entry::url($existing)]);
             }
             $row['term'] = $data['term'];
             $row['language'] = $data['language'];
             $row['data'] = $data;
-            $row['group_key'] = 'new:' . md5(Entry::fold($data['term']) . '|' . Entry::fold($data['language']));
+            $row['group_key'] = 'new:' . md5($dict . '|' . Entry::fold($data['term']) . '|' . Entry::fold($data['language']));
         } else {
-            $entryId = (int) ($in['entry_id'] ?? 0);
             $current = $entryId > 0 ? Entry::get($entryId) : null;
             if ($current === null || ($current['status'] !== 'publish' && !$manager)) {
                 throw new ProposalError(__('That entry could not be found.', 'sepo-dictionary'));
@@ -160,10 +176,11 @@ final class Proposals
         }
 
         $user = get_userdata($userId);
-        $days = Settings::int('voting_days');
+        $days = Dictionaries::int($dict, 'voting_days');
         $now = Schema::now();
         $wpdb->insert(Schema::proposals(), [
             'entry_id'  => $row['entry_id'],
+            'dict_id'   => $dict,
             'kind'      => $row['kind'],
             'op'        => $row['op'],
             'target'    => $row['target'],
@@ -230,7 +247,7 @@ final class Proposals
         if ($r === null) {
             return null;
         }
-        foreach (['id', 'entry_id', 'user_id', 'up', 'down', 'closed_by', 'history_id'] as $k) {
+        foreach (['id', 'entry_id', 'dict_id', 'user_id', 'up', 'down', 'closed_by', 'history_id'] as $k) {
             $r[$k] = (int) $r[$k];
         }
         $r['data'] = Schema::decode($r['data']) ?? [];
@@ -253,7 +270,7 @@ final class Proposals
     /**
      * A page of proposals.
      *
-     * @param array{status?:string|list<string>,kind?:string,entry_id?:int,user_id?:int,q?:string,order?:string,page?:int,per_page?:int} $a
+     * @param array{status?:string|list<string>,kind?:string,entry_id?:int,dict_id?:int,user_id?:int,q?:string,order?:string,page?:int,per_page?:int} $a
      * @return array{rows:list<array<string,mixed>>,total:int}
      */
     public static function query(array $a = []): array
@@ -272,7 +289,7 @@ final class Proposals
             $where[] = 'kind = %s';
             $params[] = $kind;
         }
-        foreach (['entry_id', 'user_id'] as $k) {
+        foreach (['entry_id', 'dict_id', 'user_id'] as $k) {
             if (!empty($a[$k])) {
                 $where[] = "$k = %d";
                 $params[] = (int) $a[$k];
@@ -300,12 +317,13 @@ final class Proposals
         return ['rows' => array_values(array_filter(array_map([self::class, 'row'], $rows ?: []))), 'total' => $total];
     }
 
-    /** @return array<string,int> status => count */
-    public static function counts(): array
+    /** @return array<string,int> status => count, in one dictionary or all of them */
+    public static function counts(int $dict = 0): array
     {
         global $wpdb;
         $out = array_fill_keys(self::STATUSES, 0);
-        foreach ($wpdb->get_results('SELECT status, COUNT(*) AS n FROM ' . Schema::proposals() . ' GROUP BY status', ARRAY_A) ?: [] as $r) {
+        $sql = 'SELECT status, COUNT(*) AS n FROM ' . Schema::proposals() . ($dict > 0 ? $wpdb->prepare(' WHERE dict_id = %d', $dict) : '') . ' GROUP BY status';
+        foreach ($wpdb->get_results($sql, ARRAY_A) ?: [] as $r) { // phpcs:ignore WordPress.DB.PreparedSQL -- prepared above
             $out[$r['status']] = (int) $r['n'];
         }
         return $out;
@@ -317,9 +335,12 @@ final class Proposals
         return (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . Schema::proposals() . " WHERE entry_id = %d AND status IN ('open','passed')", $entryId));
     }
 
-    public static function liveCountForUser(int $userId): int
+    public static function liveCountForUser(int $userId, int $dict = 0): int
     {
         global $wpdb;
+        if ($dict > 0) {
+            return (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . Schema::proposals() . " WHERE user_id = %d AND dict_id = %d AND status IN ('open','passed')", $userId, $dict));
+        }
         return (int) $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . Schema::proposals() . " WHERE user_id = %d AND status IN ('open','passed')", $userId));
     }
 
@@ -402,8 +423,9 @@ final class Proposals
      */
     public static function needs(array $p): array
     {
-        $needed = Settings::int('votes_needed', 1);
-        $margin = Settings::int('vote_margin', 0);
+        $dict = (int) ($p['dict_id'] ?? 0);
+        $needed = Dictionaries::int($dict, 'votes_needed', 1);
+        $margin = Dictionaries::int($dict, 'vote_margin', 0);
         $up = max(0, $needed - (int) $p['up']);
         $net = max(0, $margin - (int) $p['net']);
         // Progress is the lesser of the two requirements met so far.
@@ -471,11 +493,16 @@ final class Proposals
      */
     public static function evaluate(string $group): void
     {
-        $needed = Settings::int('votes_needed', 1);
-        $margin = Settings::int('vote_margin', 0);
-        $rejectAt = Settings::int('reject_at', 1);
+        $first = self::liveInGroup($group);
+        if ($first === []) {
+            return;
+        }
+        $dict = (int) $first[0]['dict_id'];
+        $needed = Dictionaries::int($dict, 'votes_needed', 1);
+        $margin = Dictionaries::int($dict, 'vote_margin', 0);
+        $rejectAt = Dictionaries::int($dict, 'reject_at', 1);
 
-        foreach (self::liveInGroup($group) as $p) {
+        foreach ($first as $p) {
             if ($p['down'] - $p['up'] >= $rejectAt) {
                 self::reject($p, 0, __('Voted down by the community.', 'sepo-dictionary'));
             }
@@ -516,7 +543,7 @@ final class Proposals
         $force = $by === 'moderator';
         $plan = self::plan($p, $force);
 
-        if (!$force && ($plan['conflicts'] !== [] || (int) Settings::get('review') === 1)) {
+        if (!$force && ($plan['conflicts'] !== [] || Dictionaries::on((int) $p['dict_id'], 'review'))) {
             $why = $plan['conflicts'] !== []
                 ? implode(' ', $plan['conflicts'])
                 : __('Passed the community vote. Waiting for an editor to merge it.', 'sepo-dictionary');
@@ -578,10 +605,10 @@ final class Proposals
         $by = (string) $p['author'];
 
         if ($p['kind'] === 'new') {
-            $existing = Entry::find((string) $p['term'], (string) $p['language']);
+            $existing = Entry::find((string) $p['term'], (string) $p['language'], 0, (int) $p['dict_id']);
             if ($existing < 1) {
                 return [
-                    'state'     => $data + ['status' => 'publish'],
+                    'state'     => ['dictionary' => (int) $p['dict_id']] + $data + ['status' => 'publish'],
                     'entry_id'  => 0,
                     'action'    => 'created',
                     /* translators: %s: member's name */
@@ -678,7 +705,7 @@ final class Proposals
             $state[$k] = $v;
         }
         if (isset($data['term']) || isset($data['language'])) {
-            $clash = Entry::find((string) $state['term'], (string) $state['language'], $entryId);
+            $clash = Entry::find((string) $state['term'], (string) $state['language'], $entryId, (int) $state['dictionary']);
             if ($clash > 0) {
                 $conflicts[] = __('Another entry already uses this spelling in this language.', 'sepo-dictionary');
             }
@@ -784,15 +811,20 @@ final class Proposals
         if (!in_array($p['status'], ['expired', 'withdrawn', 'superseded'], true)) {
             throw new ProposalError(__('This suggestion cannot be put forward again.', 'sepo-dictionary'));
         }
-        $max = Settings::int('max_open');
-        if ($max > 0 && self::liveCountForUser($userId) >= $max && !Plugin::canManage()) {
+        $dict = (int) $p['dict_id'];
+        $manager = Plugin::userCanManage($userId, $dict);
+        if (!$manager && $dict > 0 && !Dictionaries::on($dict, 'allow_proposals')) {
+            throw new ProposalError(__('This dictionary is not taking suggestions at the moment.', 'sepo-dictionary'));
+        }
+        $max = Dictionaries::int($dict, 'max_open');
+        if ($max > 0 && self::liveCountForUser($userId, $dict) >= $max && !$manager) {
             /* translators: %d: how many open proposals a member may have */
             throw new ProposalError(sprintf(__('You already have %d suggestions waiting for votes. Please wait for some of them to be settled.', 'sepo-dictionary'), $max));
         }
         $upd = ['kind' => $p['kind'], 'op' => $p['op'], 'target' => $p['target'], 'entry_id' => $p['entry_id'], 'group_key' => $p['group_key'], 'data' => $p['data'], 'base' => $p['base']];
 
         if ($p['kind'] === 'new') {
-            $existing = Entry::find((string) $p['term'], (string) $p['language']);
+            $existing = Entry::find((string) $p['term'], (string) $p['language'], 0, $dict);
             if ($existing > 0) {
                 $state = Entry::get($existing) ?? ['definitions' => []];
                 $known = array_map(static fn(array $d): string => Entry::fold($d['text']), $state['definitions']);
@@ -834,7 +866,7 @@ final class Proposals
             $upd['base'] = $base;
         }
 
-        $days = Settings::int('voting_days');
+        $days = Dictionaries::int($dict, 'voting_days');
         $wpdb->delete(Schema::votes(), ['proposal_id' => $id]);
         $wpdb->update(Schema::proposals(), [
             'kind'       => $upd['kind'],
@@ -877,7 +909,7 @@ final class Proposals
             $locked = Schema::lock('group:' . $group);
             try {
                 $lead = self::leader(self::liveInGroup($group));
-                $win = (int) Settings::get('settle_on_close') === 1 && $lead !== null && $lead['id'] === $p['id'] && $p['net'] > 0;
+                $win = Dictionaries::on((int) $p['dict_id'], 'settle_on_close') && $lead !== null && $lead['id'] === $p['id'] && $p['net'] > 0;
                 if ($win) {
                     foreach (self::liveInGroup($group) as $r) {
                         if ($r['id'] !== $p['id'] && $r['net'] === $p['net'] && $r['up'] === $p['up']) {
@@ -917,16 +949,22 @@ final class Proposals
      *
      * @return list<array{user_id:int,name:string,accepted:int,total:int,votes:int}>
      */
-    public static function contributors(int $limit = 20): array
+    public static function contributors(int $limit = 20, int $dict = 0): array
     {
         global $wpdb;
-        $rows = $wpdb->get_results($wpdb->prepare('SELECT user_id, SUM(status = %s) AS accepted, COUNT(*) AS total FROM ' . Schema::proposals() . ' WHERE user_id > 0 GROUP BY user_id ORDER BY accepted DESC, total DESC LIMIT %d', 'accepted', $limit), ARRAY_A);
+        $rows = $dict > 0
+            ? $wpdb->get_results($wpdb->prepare('SELECT user_id, SUM(status = %s) AS accepted, COUNT(*) AS total FROM ' . Schema::proposals() . ' WHERE user_id > 0 AND dict_id = %d GROUP BY user_id ORDER BY accepted DESC, total DESC LIMIT %d', 'accepted', $dict, $limit), ARRAY_A)
+            : $wpdb->get_results($wpdb->prepare('SELECT user_id, SUM(status = %s) AS accepted, COUNT(*) AS total FROM ' . Schema::proposals() . ' WHERE user_id > 0 GROUP BY user_id ORDER BY accepted DESC, total DESC LIMIT %d', 'accepted', $limit), ARRAY_A);
         $ids = array_map(static fn(array $r): int => (int) $r['user_id'], $rows ?: []);
         $votes = [];
         if ($ids !== []) {
             $in = implode(',', array_fill(0, count($ids), '%d'));
             // phpcs:ignore WordPress.DB.PreparedSQL -- placeholders built above
-            foreach ($wpdb->get_results($wpdb->prepare('SELECT user_id, COUNT(*) AS n FROM ' . Schema::votes() . " WHERE user_id IN ($in) GROUP BY user_id", ...$ids), ARRAY_A) ?: [] as $v) {
+            $sql = $dict > 0
+                ? $wpdb->prepare('SELECT v.user_id, COUNT(*) AS n FROM ' . Schema::votes() . ' v INNER JOIN ' . Schema::proposals() . " p ON p.id = v.proposal_id WHERE p.dict_id = %d AND v.user_id IN ($in) GROUP BY v.user_id", $dict, ...$ids)
+                : $wpdb->prepare('SELECT user_id, COUNT(*) AS n FROM ' . Schema::votes() . " WHERE user_id IN ($in) GROUP BY user_id", ...$ids);
+            // phpcs:ignore WordPress.DB.PreparedSQL -- prepared above
+            foreach ($wpdb->get_results($sql, ARRAY_A) ?: [] as $v) {
                 $votes[(int) $v['user_id']] = (int) $v['n'];
             }
         }

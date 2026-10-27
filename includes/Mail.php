@@ -18,11 +18,29 @@ final class Mail
         wp_mail($to, '[' . $site . '] ' . $subject, $body);
     }
 
-    /** Where editors are told about suggestions: the setting, or the site admin address. */
-    private static function editors(): string
+    /** Where editors are told about a suggestion: the dictionary's or the site's address, or the site admin. */
+    private static function editors(array $p): string
     {
-        $to = trim((string) Settings::get('notify_email'));
+        $to = trim((string) Dictionaries::setting((int) ($p['dict_id'] ?? 0), 'notify_email'));
         return $to !== '' ? $to : (string) get_option('admin_email');
+    }
+
+    /**
+     * The dictionary's own editors, by email, leaving out an address that is
+     * already told.
+     *
+     * @return list<string>
+     */
+    private static function dictionaryEditors(array $p, string $skip): array
+    {
+        $out = [];
+        foreach (Dictionaries::editors((int) ($p['dict_id'] ?? 0)) as $uid) {
+            $u = get_userdata($uid);
+            if ($u && is_email($u->user_email) && strcasecmp($u->user_email, $skip) !== 0 && (int) $u->ID !== (int) $p['user_id']) {
+                $out[] = (string) $u->user_email;
+            }
+        }
+        return array_values(array_unique($out));
     }
 
     private static function link(array $p): string
@@ -30,16 +48,24 @@ final class Mail
         if ($p['entry_id'] > 0 && get_post_status((int) $p['entry_id'])) {
             return add_query_arg('sd_tab', 'proposals', Entry::url((int) $p['entry_id']));
         }
-        return Settings::indexUrl(['sd_view' => 'review']);
+        return Dictionaries::homeUrl((int) ($p['dict_id'] ?? 0), ['sd_view' => 'review']);
+    }
+
+    /** "Bemba" when the site has several dictionaries, so editors know which one. */
+    private static function where(array $p): string
+    {
+        $name = Dictionaries::many() ? Dictionaries::name((int) ($p['dict_id'] ?? 0)) : '';
+        /* translators: %s: name of a dictionary */
+        return $name !== '' ? ' ' . sprintf(__('(%s)', 'sepo-dictionary'), $name) : '';
     }
 
     public static function proposed(array $p): void
     {
-        if ((int) Settings::get('notify_new') !== 1) {
+        if (!Dictionaries::on((int) ($p['dict_id'] ?? 0), 'notify_new')) {
             return;
         }
         /* translators: 1: kind of suggestion, 2: the word */
-        $subject = sprintf(__('New suggestion: %1$s for "%2$s"', 'sepo-dictionary'), Proposals::kindLabel($p), $p['term']);
+        $subject = sprintf(__('New suggestion: %1$s for "%2$s"', 'sepo-dictionary'), Proposals::kindLabel($p), $p['term']) . self::where($p);
         $body = sprintf(
             /* translators: 1: member's name, 2: kind of suggestion, 3: the word, 4: link */
             __("%1\$s suggested a %2\$s for \"%3\$s\". It is open for votes:\n\n%4\$s", 'sepo-dictionary'),
@@ -48,19 +74,30 @@ final class Mail
             $p['term'],
             self::link($p)
         );
-        self::send(self::editors(), $subject, $body);
+        $to = self::editors($p);
+        self::send($to, $subject, $body);
+        foreach (self::dictionaryEditors($p, $to) as $e) {
+            self::send($e, $subject, $body);
+        }
     }
 
     public static function passed(array $p, bool $conflict): void
     {
         /* translators: %s: the word */
-        $subject = sprintf(__('A suggestion for "%s" is waiting for you', 'sepo-dictionary'), $p['term']);
-        $body = $conflict
+        $subject = sprintf(__('A suggestion for "%s" is waiting for you', 'sepo-dictionary'), $p['term']) . self::where($p);
+        $admin = admin_url('edit.php?post_type=' . PostType::TYPE . '&page=sepo-dictionary-proposals&status=passed&dict=' . (int) ($p['dict_id'] ?? 0));
+        $site = Dictionaries::homeUrl((int) ($p['dict_id'] ?? 0), ['sd_view' => 'review', 'sd_status' => 'passed']);
+        $make = static fn(string $link): string => $conflict
             /* translators: 1: kind of suggestion, 2: the word, 3: what changed, 4: link */
-            ? sprintf(__("A %1\$s for \"%2\$s\" won the vote, but the entry changed after it was made: %3\$s\n\nPlease review and merge it:\n\n%4\$s", 'sepo-dictionary'), mb_strtolower(Proposals::kindLabel($p)), $p['term'], $p['close_note'], admin_url('edit.php?post_type=' . PostType::TYPE . '&page=sepo-dictionary-proposals&status=passed'))
+            ? sprintf(__("A %1\$s for \"%2\$s\" won the vote, but the entry changed after it was made: %3\$s\n\nPlease review and merge it:\n\n%4\$s", 'sepo-dictionary'), mb_strtolower(Proposals::kindLabel($p)), $p['term'], $p['close_note'], $link)
             /* translators: 1: kind of suggestion, 2: the word, 3: votes for, 4: votes against, 5: link */
-            : sprintf(__("A %1\$s for \"%2\$s\" passed the community vote (%3\$d for, %4\$d against). Please review and merge it:\n\n%5\$s", 'sepo-dictionary'), mb_strtolower(Proposals::kindLabel($p)), $p['term'], $p['up'], $p['down'], admin_url('edit.php?post_type=' . PostType::TYPE . '&page=sepo-dictionary-proposals&status=passed'));
-        self::send(self::editors(), $subject, $body);
+            : sprintf(__("A %1\$s for \"%2\$s\" passed the community vote (%3\$d for, %4\$d against). Please review and merge it:\n\n%5\$s", 'sepo-dictionary'), mb_strtolower(Proposals::kindLabel($p)), $p['term'], $p['up'], $p['down'], $link);
+        $to = self::editors($p);
+        self::send($to, $subject, $make($admin));
+        // A dictionary's own editors work on the site, so their link opens its review page.
+        foreach (self::dictionaryEditors($p, $to) as $e) {
+            self::send($e, $subject, $make($site));
+        }
     }
 
     /** Tell the author how their suggestion was settled. */

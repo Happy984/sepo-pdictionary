@@ -60,6 +60,13 @@ final class DictionaryWidget extends Widget_Base
             $langs[$t->slug] = $t->name;
         }
         $this->start_controls_section('content', ['label' => __('Dictionary', 'sepo-dictionary')]);
+        $dicts = [];
+        foreach (\SepoDictionary\Embeds::dictionaryOptions() as $o) {
+            $dicts[$o['value']] = $o['label'];
+        }
+        if (count($dicts) > 2) {
+            $this->add_control('dictionary', ['label' => __('Dictionary', 'sepo-dictionary'), 'type' => Controls_Manager::SELECT, 'default' => '', 'options' => $dicts]);
+        }
         $this->add_control('language', ['label' => __('Language', 'sepo-dictionary'), 'type' => Controls_Manager::SELECT, 'default' => '', 'options' => $langs]);
         $this->add_control('per_page', ['label' => __('Words per page (0 uses the setting)', 'sepo-dictionary'), 'type' => Controls_Manager::NUMBER, 'min' => 0, 'max' => 120, 'default' => 0]);
         $this->add_control('word_of_day', ['label' => __('Show the word of the day', 'sepo-dictionary'), 'type' => Controls_Manager::SWITCHER, 'default' => 'yes']);
@@ -77,6 +84,7 @@ final class DictionaryWidget extends Widget_Base
     {
         $s = $this->get_settings_for_display();
         echo Frontend::dictionaryShortcode([ // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
+            'dictionary'  => (string) ($s['dictionary'] ?? ''),
             'language'    => (string) ($s['language'] ?? ''),
             'per_page'    => (string) (int) ($s['per_page'] ?? 0),
             'word_of_day' => ($s['word_of_day'] ?? 'yes') === 'yes' ? '1' : '0',

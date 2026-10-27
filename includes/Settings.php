@@ -66,8 +66,14 @@ final class Settings
     /** @return list<string> */
     public static function partsOfSpeech(): array
     {
+        return self::parsePos((string) self::get('parts_of_speech'));
+    }
+
+    /** @return list<string> one part of speech per line, comma or bar */
+    public static function parsePos(string $raw): array
+    {
         $out = [];
-        foreach (preg_split('~[\r\n,|]+~', (string) self::get('parts_of_speech')) ?: [] as $p) {
+        foreach (preg_split('~[\r\n,|]+~', $raw) ?: [] as $p) {
             $p = trim(sanitize_text_field($p));
             if ($p !== '' && !in_array($p, $out, true)) {
                 $out[] = $p;

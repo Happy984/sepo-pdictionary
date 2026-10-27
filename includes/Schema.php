@@ -36,6 +36,7 @@ final class Schema
         dbDelta('CREATE TABLE ' . self::proposals() . " (
   id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   entry_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  dict_id bigint(20) unsigned NOT NULL DEFAULT 0,
   kind varchar(16) NOT NULL DEFAULT '',
   op varchar(16) NOT NULL DEFAULT '',
   target varchar(32) NOT NULL DEFAULT '',
@@ -60,6 +61,7 @@ final class Schema
   PRIMARY KEY  (id),
   KEY status (status),
   KEY entry_id (entry_id),
+  KEY dict_id (dict_id),
   KEY group_key (group_key),
   KEY user_id (user_id),
   KEY closes (closes)

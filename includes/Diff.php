@@ -20,6 +20,7 @@ final class Diff
         return [
             'term'          => __('Word', 'sepo-dictionary'),
             'status'        => __('Visibility', 'sepo-dictionary'),
+            'dictionary'    => __('Dictionary', 'sepo-dictionary'),
             'language'      => __('Language', 'sepo-dictionary'),
             'category'      => __('Category', 'sepo-dictionary'),
             'tags'          => __('Tags', 'sepo-dictionary'),
@@ -75,6 +76,14 @@ final class Diff
                 if ($k === 'status') {
                     $from = self::statusLabel((string) $from);
                     $to = self::statusLabel((string) $to);
+                }
+                if ($k === 'dictionary') {
+                    // Shown by name; a state recorded before dictionaries existed has none.
+                    if ((int) $from < 1 || (int) $to < 1) {
+                        continue;
+                    }
+                    $from = Dictionaries::name((int) $from) ?: '#' . (int) $from;
+                    $to = Dictionaries::name((int) $to) ?: '#' . (int) $to;
                 }
                 $html = self::words((string) $from, (string) $to);
             }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SepoDictionary\Render;
 
+use SepoDictionary\Dictionaries;
 use SepoDictionary\Diff;
 use SepoDictionary\Entry;
 use SepoDictionary\Plugin;
@@ -17,7 +18,7 @@ final class ProposalView
 {
     /**
      * @param list<array<string,mixed>> $rows
-     * @param array<string,mixed> $o showTerm
+     * @param array<string,mixed> $o showTerm, showDict (name each suggestion's dictionary)
      */
     public static function list(array $rows, array $o = []): string
     {
@@ -48,8 +49,9 @@ final class ProposalView
             $h .= $href !== ''
                 ? '<a class="sdict-prop__term" href="' . esc_url(add_query_arg('sd_tab', 'proposals', $href) . '#proposal-' . (int) $p['id']) . '">' . esc_html((string) $p['term']) . '</a>'
                 : '<span class="sdict-prop__term">' . esc_html((string) $p['term']) . '</span>';
-            if ($p['language'] !== '') {
-                $h .= '<span class="sdict-prop__lang">' . esc_html((string) $p['language']) . '</span>';
+            $where = array_filter([!empty($o['showDict']) && Dictionaries::many() ? Dictionaries::name((int) $p['dict_id']) : '', (string) $p['language']]);
+            if ($where !== []) {
+                $h .= '<span class="sdict-prop__lang">' . esc_html(implode(' · ', $where)) . '</span>';
             }
         }
         $h .= self::pill($p);
@@ -99,7 +101,7 @@ final class ProposalView
             $label = $p['status'] === 'superseded' && $p['kind'] === 'new' ? __('Suggest as an extra meaning', 'sepo-dictionary') : __('Put forward again', 'sepo-dictionary');
             $actions .= '<button type="button" class="sdict-btn sdict-btn--sm" data-sdict-act="resubmit" data-id="' . (int) $p['id'] . '">' . Icons::get('undo', 14) . esc_html($label) . '</button>';
         }
-        if (Plugin::canManage()) {
+        if (Plugin::canManage((int) $p['dict_id'])) {
             if ($live) {
                 $actions .= '<button type="button" class="sdict-btn sdict-btn--good sdict-btn--sm" data-sdict-act="accept" data-id="' . (int) $p['id'] . '">' . Icons::get('merge', 14) . esc_html__('Accept and merge', 'sepo-dictionary') . '</button>';
                 $actions .= '<button type="button" class="sdict-btn sdict-btn--sm" data-sdict-act="reject" data-id="' . (int) $p['id'] . '">' . esc_html__('Decline', 'sepo-dictionary') . '</button>';
@@ -247,24 +249,24 @@ final class ProposalView
     }
 
     /** The voting rules in one sentence, shown above the review queue. */
-    public static function rules(): string
+    public static function rules(int $dict = 0): string
     {
-        $needed = Settings::int('votes_needed', 1);
-        $margin = Settings::int('vote_margin', 0);
-        $reject = Settings::int('reject_at', 1);
-        $days = Settings::int('voting_days');
+        $needed = Dictionaries::int($dict, 'votes_needed', 1);
+        $margin = Dictionaries::int($dict, 'vote_margin', 0);
+        $reject = Dictionaries::int($dict, 'reject_at', 1);
+        $days = Dictionaries::int($dict, 'voting_days');
         /* translators: 1: votes needed, 2: lead needed */
         $s = sprintf(__('A suggestion is accepted when at least %1$d members vote that it is accurate and it is %2$d votes ahead.', 'sepo-dictionary'), $needed, $margin);
         /* translators: %d: votes */
         $s .= ' ' . sprintf(__('It is declined when it falls %d votes behind.', 'sepo-dictionary'), $reject);
         if ($days > 0) {
-            $s .= ' ' . ((int) Settings::get('settle_on_close') === 1
+            $s .= ' ' . (Dictionaries::on($dict, 'settle_on_close')
                 /* translators: %d: days */
                 ? sprintf(__('Voting stays open for %d days; then the suggestion that leads, if more members found it accurate than not, is accepted.', 'sepo-dictionary'), $days)
                 /* translators: %d: days */
                 : sprintf(__('Voting stays open for %d days.', 'sepo-dictionary'), $days));
         }
-        if ((int) Settings::get('review') === 1) {
+        if (Dictionaries::on($dict, 'review')) {
             $s .= ' ' . __('An editor checks each accepted suggestion before it is merged.', 'sepo-dictionary');
         }
         return $s;

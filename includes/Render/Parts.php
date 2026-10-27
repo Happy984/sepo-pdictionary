@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SepoDictionary\Render;
 
+use SepoDictionary\Dictionaries;
 use SepoDictionary\Entry;
 use SepoDictionary\Plugin;
 use SepoDictionary\PostType;
@@ -46,7 +47,7 @@ final class Parts
     }
 
     /** The search box with its typeahead list. */
-    public static function search(string $base, string $q = '', string $language = '', bool $compact = false, array $languages = []): string
+    public static function search(string $base, string $q = '', string $language = '', bool $compact = false, array $languages = [], bool $all = false): string
     {
         $id = 'sdict-q-' . wp_rand(1000, 99999);
         $h = '<form class="sdict-search' . ($compact ? ' sdict-search--compact' : '') . '" role="search" method="get" action="' . esc_url($base) . '" data-sdict-search>';
@@ -60,9 +61,10 @@ final class Parts
                 }
             }
         }
-        $h .= '<label class="screen-reader-text" for="' . esc_attr($id) . '">' . esc_html__('Search the dictionary', 'sepo-dictionary') . '</label>';
+        $all = $all && Dictionaries::many();
+        $h .= '<label class="screen-reader-text" for="' . esc_attr($id) . '">' . esc_html($all ? __('Search all dictionaries', 'sepo-dictionary') : __('Search the dictionary', 'sepo-dictionary')) . '</label>';
         $h .= '<span class="sdict-search__icon">' . Icons::get('search', 18) . '</span>';
-        $h .= '<input class="sdict-search__input" id="' . esc_attr($id) . '" type="search" name="sd_q" value="' . esc_attr($q) . '" placeholder="' . esc_attr__('Search a word or a meaning…', 'sepo-dictionary') . '" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="' . esc_attr($id) . '-list">';
+        $h .= '<input class="sdict-search__input" id="' . esc_attr($id) . '" type="search" name="sd_q" value="' . esc_attr($q) . '" placeholder="' . esc_attr($all ? __('Search every dictionary…', 'sepo-dictionary') : __('Search a word or a meaning…', 'sepo-dictionary')) . '" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="' . esc_attr($id) . '-list">';
         if ($languages !== [] && count($languages) > 1) {
             $h .= '<label class="screen-reader-text" for="' . esc_attr($id) . '-lang">' . esc_html__('Language', 'sepo-dictionary') . '</label>';
             $h .= '<select class="sdict-search__lang" id="' . esc_attr($id) . '-lang" name="sd_lang"><option value="">' . esc_html__('All languages', 'sepo-dictionary') . '</option>';
@@ -127,8 +129,8 @@ final class Parts
         return $h . '</nav>';
     }
 
-    /** One row in a list of entries. */
-    public static function item(\WP_Post $post): string
+    /** One row in a list of entries; $showDict names the word's dictionary, for lists that mix them. */
+    public static function item(\WP_Post $post, bool $showDict = false): string
     {
         $s = Entry::get((int) $post->ID);
         if ($s === null) {
@@ -147,8 +149,9 @@ final class Parts
         if ($snip !== '') {
             $h .= '<span class="sdict-item__def">' . esc_html($snip) . '</span>';
         }
-        if ($s['language'] !== '') {
-            $h .= '<span class="sdict-item__lang">' . esc_html($s['language']) . '</span>';
+        $where = array_filter([$showDict ? Dictionaries::name((int) $s['dictionary']) : '', $s['language']]);
+        if ($where !== []) {
+            $h .= '<span class="sdict-item__lang">' . esc_html(implode(' · ', $where)) . '</span>';
         }
         return $h . '</a></li>';
     }
@@ -169,11 +172,11 @@ final class Parts
      *
      * @param list<string> $words
      */
-    public static function chips(array $words, string $language = ''): string
+    public static function chips(array $words, string $language = '', int $dict = 0): string
     {
         $out = [];
         foreach ($words as $w) {
-            $id = Entry::find($w, $language) ?: Entry::findAny($w);
+            $id = Entry::find($w, $language, 0, $dict) ?: Entry::findAny($w, $dict);
             $out[] = $id > 0 && get_post_status($id) === 'publish'
                 ? '<a class="sdict-chip sdict-chip--link" href="' . esc_url(Entry::url($id)) . '">' . esc_html($w) . '</a>'
                 : '<span class="sdict-chip">' . esc_html($w) . '</span>';
@@ -182,17 +185,17 @@ final class Parts
     }
 
     /** The masthead tabs on the dictionary page. */
-    public static function nav(string $base, string $view, array $keep = []): string
+    public static function nav(string $base, string $view, array $keep = [], int $dict = 0): string
     {
-        $counts = Proposals::counts();
-        $live = $counts['open'] + (Plugin::canManage() ? $counts['passed'] : 0);
+        $counts = Proposals::counts($dict);
+        $live = $counts['open'] + (Plugin::canManage($dict) ? $counts['passed'] : 0);
         $tabs = [
-            ''             => [__('Browse', 'sepo-dictionary'), 'book', 0],
+            ''             => [$dict === 0 && Dictionaries::many() ? __('Dictionaries', 'sepo-dictionary') : __('Browse', 'sepo-dictionary'), 'book', 0],
             'review'       => [__('Community review', 'sepo-dictionary'), 'vote', $live],
             'contributors' => [__('Contributors', 'sepo-dictionary'), 'award', 0],
         ];
         if (is_user_logged_in()) {
-            $mine = Proposals::liveCountForUser(get_current_user_id());
+            $mine = Proposals::liveCountForUser(get_current_user_id(), $dict);
             $tabs = array_slice($tabs, 0, 2, true) + ['mine' => [__('My suggestions', 'sepo-dictionary'), 'edit', $mine]] + array_slice($tabs, 2, null, true);
         }
         $h = '<nav class="sdict-nav" aria-label="' . esc_attr__('Dictionary sections', 'sepo-dictionary') . '">';
@@ -221,6 +224,25 @@ final class Parts
     {
         $t = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'orderby' => 'name']);
         return is_array($t) ? array_values($t) : [];
+    }
+
+    /**
+     * The attributes that tie a block of the page to its dictionary: which
+     * one it is (for the script) and its own accent colour, when it has one.
+     *
+     * @return array<string,string>
+     */
+    public static function dictAttrs(int $dict): array
+    {
+        if ($dict < 1) {
+            return [];
+        }
+        $out = ['data-sdict-dict' => (string) $dict];
+        $a = Dictionaries::accent($dict);
+        if ($a !== '') {
+            $out['style'] = '--sdict-accent:' . $a . ';--sdict-on-accent:' . \SepoDictionary\Settings::textOn($a);
+        }
+        return $out;
     }
 
     /** Wrap markup in the plugin's scope. */

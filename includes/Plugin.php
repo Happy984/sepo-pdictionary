@@ -18,6 +18,8 @@ final class Plugin
     {
         Schema::install();
         PostType::register();
+        Dictionaries::migrate();
+        Routes::addRules();
         Settings::ensureIndexPage();
         flush_rewrite_rules();
         if (!wp_next_scheduled(self::CRON)) {
@@ -39,6 +41,8 @@ final class Plugin
         }, 1);
 
         PostType::hook();
+        Dictionaries::hook();
+        Routes::hook();
         Entry::hook();
         Frontend::hook();
         Rest::hook();
@@ -52,12 +56,15 @@ final class Plugin
             Admin\MetaBox::hook();
             Admin\Screens::hook();
             Admin\Transfer::hook();
+            Admin\DictionaryScreen::hook();
         }
 
         // A new version may add columns or rewrite rules: bring both up to date once.
         add_action('init', static function (): void {
             if (get_option(self::VERSION_OPTION) !== SDICT_VERSION) {
                 Schema::install();
+                Dictionaries::migrate();
+                Routes::addRules();
                 flush_rewrite_rules(false);
                 update_option(self::VERSION_OPTION, SDICT_VERSION);
             }
@@ -74,23 +81,61 @@ final class Plugin
         return SDICT_VERSION . (is_file($file) ? '.' . filemtime($file) : '');
     }
 
-    /** Editors of the dictionary: change entries directly, settle proposals, restore history. */
-    public static function canManage(): bool
+    /** Editors of every dictionary on the site. */
+    public static function siteManager(): bool
     {
-        return current_user_can((string) apply_filters('sepo_dictionary_manage_capability', 'edit_others_posts'));
+        return current_user_can(self::manageCap());
     }
 
-    /** Who may suggest words, meanings and edits. */
-    public static function canPropose(): bool
+    public static function manageCap(): string
+    {
+        return (string) apply_filters('sepo_dictionary_manage_capability', 'edit_others_posts');
+    }
+
+    /**
+     * Who may change entries directly, settle suggestions and restore
+     * history: the site's editors everywhere, and a dictionary's own editors
+     * in that dictionary. With no dictionary given, only the site's editors.
+     */
+    public static function canManage(int $dict = 0): bool
+    {
+        return self::userCanManage(get_current_user_id(), $dict);
+    }
+
+    public static function userCanManage(int $userId, int $dict = 0): bool
+    {
+        if ($userId < 1) {
+            return false;
+        }
+        if (user_can($userId, self::manageCap())) {
+            return true;
+        }
+        return $dict > 0 && Dictionaries::isEditor($dict, $userId);
+    }
+
+    /** Whether the current member looks after any dictionary, or all of them. */
+    public static function managesAny(): bool
+    {
+        return self::siteManager() || Dictionaries::editedBy(get_current_user_id()) !== [];
+    }
+
+    /** Who may suggest words, meanings and edits in a dictionary. */
+    public static function canPropose(int $dict = 0): bool
     {
         if (!is_user_logged_in()) {
             return false;
         }
-        if (self::canManage()) {
+        if (self::canManage($dict)) {
             return true;
         }
-        return (bool) Settings::get('allow_proposals')
-            && current_user_can((string) apply_filters('sepo_dictionary_propose_capability', 'read'));
+        $open = $dict > 0 ? Dictionaries::on($dict, 'allow_proposals') : (int) Settings::get('allow_proposals') === 1;
+        return $open && current_user_can((string) apply_filters('sepo_dictionary_propose_capability', 'read'));
+    }
+
+    /** Whether suggestions are open to members in a dictionary, signed in or not. */
+    public static function proposalsOpen(int $dict = 0): bool
+    {
+        return $dict > 0 ? Dictionaries::on($dict, 'allow_proposals') : (int) Settings::get('allow_proposals') === 1;
     }
 
     /** Who may vote on the accuracy of a proposal. */

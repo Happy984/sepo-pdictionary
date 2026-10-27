@@ -69,7 +69,9 @@ final class PostType
             'menu_icon'       => 'dashicons-book-alt',
             'menu_position'   => 22,
             'supports'        => ['title', 'author'],
-            'rewrite'         => ['slug' => self::base(), 'with_front' => false],
+            // Addresses are /dictionary/<dictionary>/<word>/, set up in Routes.
+            'rewrite'         => false,
+            'query_var'       => self::TYPE,
             'capability_type' => 'post',
             'map_meta_cap'    => true,
         ]);
@@ -121,6 +123,9 @@ final class PostType
             }
         }
         unset($out['author']);
+        if (!Dictionaries::many()) {
+            unset($out['taxonomy-' . Dictionaries::TAX]);
+        }
         return $out;
     }
 
