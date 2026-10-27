@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SepoDictionary\Admin;
 
+use SepoDictionary\Dictionaries;
 use SepoDictionary\Entry;
 use SepoDictionary\Frontend;
 use SepoDictionary\Plugin;
@@ -63,6 +64,7 @@ final class Screens
         $status = isset($_GET['status']) ? sanitize_key((string) $_GET['status']) : 'live';
         $kind = isset($_GET['kind']) ? sanitize_key((string) $_GET['kind']) : '';
         $entry = isset($_GET['entry']) ? absint($_GET['entry']) : 0;
+        $dict = isset($_GET['dict']) ? absint($_GET['dict']) : 0;
         $q = isset($_GET['s']) ? sanitize_text_field(wp_unslash((string) $_GET['s'])) : '';
         $page = isset($_GET['paged']) ? max(1, absint($_GET['paged'])) : 1;
         // phpcs:enable
@@ -75,8 +77,8 @@ final class Screens
         if (!isset($tabs[$status])) {
             $status = 'live';
         }
-        $counts = Proposals::counts();
-        $res = Proposals::query(['status' => $tabs[$status][1], 'kind' => $kind, 'entry_id' => $entry, 'q' => $q, 'page' => $page, 'per_page' => 20, 'order' => $status === 'live' ? 'top' : 'closed']);
+        $counts = Proposals::counts($dict);
+        $res = Proposals::query(['status' => $tabs[$status][1], 'kind' => $kind, 'entry_id' => $entry, 'dict_id' => $dict, 'q' => $q, 'page' => $page, 'per_page' => 20, 'order' => $status === 'live' ? 'top' : 'closed']);
 
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . esc_html__('Suggestions', 'sepo-dictionary') . '</h1>';
         if ($entry > 0 && ($s = Entry::get($entry)) !== null) {
@@ -87,10 +89,11 @@ final class Screens
         $i = 0;
         foreach ($tabs as $key => [$label, $sts]) {
             $n = array_sum(array_map(static fn(string $x): int => $counts[$x] ?? 0, $sts));
-            echo ($i++ > 0 ? ' | ' : '') . '<li><a href="' . esc_url(self::url(['status' => $key, 'entry' => $entry ?: null])) . '"' . ($status === $key ? ' class="current" aria-current="page"' : '') . '>' . esc_html($label) . ' <span class="count">(' . (int) $n . ')</span></a></li>';
+            echo ($i++ > 0 ? ' | ' : '') . '<li><a href="' . esc_url(self::url(['status' => $key, 'entry' => $entry ?: null, 'dict' => $dict ?: null])) . '"' . ($status === $key ? ' class="current" aria-current="page"' : '') . '>' . esc_html($label) . ' <span class="count">(' . (int) $n . ')</span></a></li>';
         }
         echo '</ul>';
         echo '<form method="get" class="search-box" style="margin-top:8px"><input type="hidden" name="post_type" value="' . esc_attr(PostType::TYPE) . '"><input type="hidden" name="page" value="' . esc_attr(self::PROPOSALS) . '"><input type="hidden" name="status" value="' . esc_attr($status) . '">'
+            . self::dictSelect($dict)
             . '<select name="kind"><option value="">' . esc_html__('All kinds', 'sepo-dictionary') . '</option>';
         foreach (['new' => __('New words', 'sepo-dictionary'), 'meaning' => __('Meanings', 'sepo-dictionary'), 'edit' => __('Corrections', 'sepo-dictionary')] as $k => $label) {
             echo '<option value="' . esc_attr($k) . '"' . selected($kind, $k, false) . '>' . esc_html($label) . '</option>';
@@ -98,17 +101,36 @@ final class Screens
         echo '</select> <label class="screen-reader-text" for="sdict-ps">' . esc_html__('Search suggestions', 'sepo-dictionary') . '</label><input type="search" id="sdict-ps" name="s" value="' . esc_attr($q) . '" placeholder="' . esc_attr__('Word', 'sepo-dictionary') . '"> '
             . '<button class="button">' . esc_html__('Filter', 'sepo-dictionary') . '</button></form><br class="clear">';
 
-        $inner = '<p class="sdict-rules">' . esc_html(ProposalView::rules()) . ' <a href="' . esc_url(admin_url('edit.php?post_type=' . PostType::TYPE . '&page=' . self::SETTINGS)) . '">' . esc_html__('Change the rules', 'sepo-dictionary') . '</a></p>';
+        $rulesLink = $dict > 0
+            ? admin_url('term.php?taxonomy=' . Dictionaries::TAX . '&tag_ID=' . $dict . '&post_type=' . PostType::TYPE)
+            : admin_url('edit.php?post_type=' . PostType::TYPE . '&page=' . self::SETTINGS);
+        $rules = $dict === 0 && Dictionaries::rulesDiffer()
+            ? __('Each dictionary sets its own voting rules. Choose a dictionary to see its rules.', 'sepo-dictionary')
+            : ProposalView::rules($dict);
+        $inner = '<p class="sdict-rules">' . esc_html($rules) . ' <a href="' . esc_url($rulesLink) . '">' . esc_html__('Change the rules', 'sepo-dictionary') . '</a></p>';
         $inner .= $res['rows'] === []
             ? '<div class="sdict-empty"><p>' . esc_html__('Nothing here.', 'sepo-dictionary') . '</p></div>'
-            : ProposalView::list($res['rows'], ['showTerm' => true]);
+            : ProposalView::list($res['rows'], ['showTerm' => true, 'showDict' => $dict === 0]);
         $pages = (int) ceil($res['total'] / 20);
         if ($pages > 1) {
-            $inner .= Parts::pager(self::url(['status' => $status, 'kind' => $kind, 'entry' => $entry ?: null, 's' => $q]), [], $page, $pages);
+            $inner .= Parts::pager(self::url(['status' => $status, 'kind' => $kind, 'entry' => $entry ?: null, 'dict' => $dict ?: null, 's' => $q]), [], $page, $pages);
             $inner = str_replace('sd_page=', 'paged=', $inner);
         }
         echo Parts::scope($inner, 'sdict-app', ['data-sdict-app' => '1']); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
         echo '</div>';
+    }
+
+    /** A dictionary filter for the suggestions screen, when there is more than one. */
+    private static function dictSelect(int $current): string
+    {
+        if (!Dictionaries::many()) {
+            return '';
+        }
+        $h = '<label class="screen-reader-text" for="sdict-pd">' . esc_html__('Dictionary', 'sepo-dictionary') . '</label><select name="dict" id="sdict-pd"><option value="">' . esc_html__('All dictionaries', 'sepo-dictionary') . '</option>';
+        foreach (Dictionaries::all() as $t) {
+            $h .= '<option value="' . (int) $t->term_id . '"' . selected($current, (int) $t->term_id, false) . '>' . esc_html($t->name) . '</option>';
+        }
+        return $h . '</select> ';
     }
 
     public static function settings(): void
@@ -129,6 +151,10 @@ final class Screens
           <?php if (isset($_GET['updated'])) : // phpcs:ignore WordPress.Security.NonceVerification ?>
             <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Settings saved.', 'sepo-dictionary'); ?></p></div>
           <?php endif; ?>
+          <p class="sdict-notice-tint sdict-settings-lead"><?php
+            /* translators: %s: link to the list of dictionaries */
+            printf(esc_html__('These settings apply to every dictionary. Each dictionary can change any of them for itself under %s.', 'sepo-dictionary'), '<a href="' . esc_url(admin_url('edit-tags.php?taxonomy=' . Dictionaries::TAX . '&post_type=' . PostType::TYPE)) . '">' . esc_html__('Dictionary → Dictionaries', 'sepo-dictionary') . '</a>');
+          ?></p>
           <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <input type="hidden" name="action" value="sepo_dictionary_settings">
             <?php wp_nonce_field('sepo_dictionary_settings'); ?>
@@ -140,7 +166,7 @@ final class Screens
                   <p class="description"><?php esc_html_e('Buttons, the selected letter and highlights. Leave empty for the default deep green.', 'sepo-dictionary'); ?></p></td></tr>
               <tr><th scope="row"><label for="sdict-index"><?php esc_html_e('Dictionary page', 'sepo-dictionary'); ?></label></th>
                 <td><?php wp_dropdown_pages(['name' => 'index_page', 'id' => 'sdict-index', 'selected' => (int) $s['index_page'], 'show_option_none' => esc_html__('— None —', 'sepo-dictionary'), 'option_none_value' => '0']); ?>
-                  <p class="description"><?php esc_html_e('The page with the [sepo_dictionary] shortcode or the Dictionary block. Entry pages link back to it.', 'sepo-dictionary'); ?></p></td></tr>
+                  <p class="description"><?php esc_html_e('The page with the [sepo_dictionary] shortcode or the Dictionary block. With several dictionaries it lists them, and each dictionary\'s own address shows that dictionary on this page.', 'sepo-dictionary'); ?></p></td></tr>
               <tr><th scope="row"><label for="sdict-per_page"><?php esc_html_e('Words per page', 'sepo-dictionary'); ?></label></th>
                 <td><?php echo $num('per_page', $s['per_page'], 6, 120); // phpcs:ignore WordPress.Security.EscapeOutput ?></td></tr>
               <tr><th scope="row"><?php esc_html_e('Word of the day', 'sepo-dictionary'); ?></th>

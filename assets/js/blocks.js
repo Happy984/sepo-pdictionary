@@ -7,6 +7,11 @@
   var C = wp.components;
   var SSR = wp.serverSideRender;
   var languages = (cfg && cfg.languages) || [];
+  var dictionaries = (cfg && cfg.dictionaries) || [];
+  function dictControl(props, help) {
+    if (dictionaries.length < 3) { return null; }
+    return el(C.SelectControl, { label: __('Dictionary', 'sepo-dictionary'), help: help, value: props.attributes.dictionary || '', options: dictionaries, onChange: set(props, 'dictionary') });
+  }
 
   function preview(name, attrs, props) {
     return el('div', props, SSR ? el(SSR, { block: name, attributes: attrs }) : null);
@@ -20,13 +25,14 @@
     icon: 'book-alt',
     category: 'widgets',
     keywords: [__('glossary', 'sepo-dictionary'), __('words', 'sepo-dictionary')],
-    attributes: { perPage: { type: 'number', default: 0 }, wordOfDay: { type: 'boolean', default: true }, letters: { type: 'boolean', default: true }, language: { type: 'string', default: '' }, title: { type: 'string', default: '' } },
+    attributes: { dictionary: { type: 'string', default: '' }, perPage: { type: 'number', default: 0 }, wordOfDay: { type: 'boolean', default: true }, letters: { type: 'boolean', default: true }, language: { type: 'string', default: '' }, title: { type: 'string', default: '' } },
     edit: function (props) {
       var a = props.attributes;
       var bp = be.useBlockProps ? be.useBlockProps() : {};
       return el('div', bp,
         el(be.InspectorControls, null,
           el(C.PanelBody, { title: __('Dictionary', 'sepo-dictionary'), initialOpen: true },
+            dictControl(props, __('Show one dictionary on this page.', 'sepo-dictionary')),
             el(C.SelectControl, { label: __('Language', 'sepo-dictionary'), help: __('Show only one language\'s words.', 'sepo-dictionary'), value: a.language, options: languages, onChange: set(props, 'language') }),
             el(C.RangeControl, { label: __('Words per page (0 uses the setting)', 'sepo-dictionary'), value: a.perPage, min: 0, max: 120, onChange: function (v) { props.setAttributes({ perPage: v || 0 }); } }),
             el(C.ToggleControl, { label: __('Show the word of the day', 'sepo-dictionary'), checked: !!a.wordOfDay, onChange: set(props, 'wordOfDay') }),
@@ -46,12 +52,13 @@
     description: __('One entry from the dictionary.', 'sepo-dictionary'),
     icon: 'editor-spellcheck',
     category: 'widgets',
-    attributes: { term: { type: 'string', default: '' } },
+    attributes: { term: { type: 'string', default: '' }, dictionary: { type: 'string', default: '' } },
     edit: function (props) {
       var a = props.attributes;
       var bp = be.useBlockProps ? be.useBlockProps() : {};
       var controls = el(be.InspectorControls, null, el(C.PanelBody, { title: __('Word', 'sepo-dictionary'), initialOpen: true },
-        el(C.TextControl, { label: __('Word', 'sepo-dictionary'), value: a.term, onChange: set(props, 'term') })));
+        el(C.TextControl, { label: __('Word', 'sepo-dictionary'), value: a.term, onChange: set(props, 'term') }),
+        dictControl(props, __('Look the word up in this dictionary first.', 'sepo-dictionary'))));
       if (!a.term) {
         return el('div', bp, controls, el(C.Placeholder, { icon: 'editor-spellcheck', label: __('Dictionary word', 'sepo-dictionary'), instructions: __('Type the word to show.', 'sepo-dictionary') },
           el(C.TextControl, { value: a.term, onChange: set(props, 'term') })));
@@ -67,12 +74,13 @@
     description: __('A word from the dictionary that changes every day.', 'sepo-dictionary'),
     icon: 'awards',
     category: 'widgets',
-    attributes: { language: { type: 'string', default: '' }, title: { type: 'string', default: '' } },
+    attributes: { language: { type: 'string', default: '' }, dictionary: { type: 'string', default: '' }, title: { type: 'string', default: '' } },
     edit: function (props) {
       var a = props.attributes;
       var bp = be.useBlockProps ? be.useBlockProps() : {};
       return el('div', bp,
         el(be.InspectorControls, null, el(C.PanelBody, { title: __('Word of the day', 'sepo-dictionary'), initialOpen: true },
+          dictControl(props, ''),
           el(C.SelectControl, { label: __('Language', 'sepo-dictionary'), value: a.language, options: languages, onChange: set(props, 'language') }),
           el(C.TextControl, { label: __('Heading', 'sepo-dictionary'), value: a.title, placeholder: __('Word of the day', 'sepo-dictionary'), onChange: set(props, 'title') }))),
         preview('sepo-dictionary/word-of-day', a, { style: { pointerEvents: 'none' } }));

@@ -22,6 +22,31 @@
   }
   function rootOf(el) { return (el && el.closest && el.closest('.sdict-scope')) || document.querySelector('.sdict-scope'); }
 
+  // ------------------------------------------------------------ dictionaries
+
+  /** What the visitor may do in each dictionary, keyed by its id. */
+  var DICTS = {};
+  (cfg.dicts || []).forEach(function (d) { DICTS[d.id] = d; });
+  var DICT_LIST = cfg.dicts || [];
+
+  /** The dictionary a part of the page is about: the entry's, else the block's; 0 on the list of dictionaries. */
+  function dictOf(root, entry) {
+    if (entry && entry.dictionary) { return parseInt(entry.dictionary, 10) || 0; }
+    var own = root && root.getAttribute('data-sdict-dict');
+    return parseInt(own || cfg.defaultDict || 0, 10) || 0;
+  }
+  function ctx(id) {
+    var d = DICTS[id];
+    return {
+      id: id,
+      canManage: d ? !!d.canManage : !!cfg.canManage,
+      pos: d ? d.pos : cfg.pos,
+      reviewUrl: d ? d.reviewUrl : cfg.reviewUrl
+    };
+  }
+  /** The dictionary the open form works in; the field builders read it. */
+  var formCtx = ctx(0);
+
   // ------------------------------------------------------------ dark mode
 
   /** A declared theme marker wins; otherwise the page background decides. */
@@ -207,6 +232,7 @@
     var input = form.querySelector('.sdict-search__input');
     var box = form.querySelector('[data-sdict-suggest]');
     var lang = form.querySelector('.sdict-search__lang') || form.querySelector('input[name="sd_lang"]');
+    var dict = dictOf(rootOf(form), null);
     if (!input || !box) { return; }
     var timer = 0, last = '', active = -1, seq = 0;
 
@@ -225,7 +251,7 @@
       last = key;
       if (q.length < 1) { hide(); return; }
       var mine = ++seq;
-      get('/search?limit=8&q=' + encodeURIComponent(q) + (lang && lang.value ? '&language=' + encodeURIComponent(lang.value) : '')).then(function (b) {
+      get('/search?limit=8&q=' + encodeURIComponent(q) + (lang && lang.value ? '&language=' + encodeURIComponent(lang.value) : '') + (dict ? '&dictionary=' + dict : '')).then(function (b) {
         if (mine !== seq) { return; }
         var rows = (b.data && b.data.results) || [];
         if (!rows.length) {
@@ -235,7 +261,7 @@
             return '<a class="sdict-suggest__opt" role="option" id="' + form.querySelector('.sdict-search__input').id + '-o' + i + '" href="' + esc(r.url) + '">'
               + '<span class="sdict-suggest__head"><span class="sdict-suggest__term">' + esc(r.term) + '</span>'
               + (r.pos ? '<span class="sdict-pos">' + esc(r.pos) + '</span>' : '')
-              + (r.language ? '<span class="sdict-suggest__lang">' + esc(r.language) + '</span>' : '') + '</span>'
+              + (r.language || (!dict && DICT_LIST.length > 1 && r.dictionary) ? '<span class="sdict-suggest__lang">' + esc([!dict && DICT_LIST.length > 1 ? r.dictionary : '', r.language].filter(Boolean).join(' · ')) + '</span>' : '') + '</span>'
               + (r.snippet ? '<span class="sdict-suggest__def">' + esc(r.snippet) + '</span>' : '') + '</a>';
           }).join('') + '<button type="submit" class="sdict-suggest__all">' + esc(fmt(T.allResults, q)) + '</button>';
         }
@@ -283,7 +309,7 @@
   }
   /** A select from the editors' list for members; a free field with suggestions for editors. */
   function choice(name, value, values, uid) {
-    if (cfg.canManage) {
+    if (formCtx.canManage) {
       return input(name, value, ' list="' + uid + '-' + name + '" autocomplete="off"') + datalist(uid + '-' + name, values);
     }
     var o = '<option value="">' + esc(T.none) + '</option>';
@@ -298,7 +324,7 @@
       + '<label class="sdict-field"><span class="screen-reader-text">' + esc(T.meaning) + '</span><textarea name="def_text" rows="2" placeholder="' + esc(T.meaningPh) + '">' + esc(d.text || '') + '</textarea></label>'
       + '<label class="sdict-field"><span class="screen-reader-text">' + esc(T.example) + '</span><input type="text" name="def_example" value="' + esc(d.example || '') + '" placeholder="' + esc(T.examplePh) + '"></label>'
       + '</div><div class="sdict-defrow__tools">'
-      + (cfg.canManage ? '<button type="button" class="sdict-iconbtn" data-sdict-def="up" aria-label="' + esc(T.moveUp) + '" title="' + esc(T.moveUp) + '">&#8593;</button>' : '')
+      + (formCtx.canManage ? '<button type="button" class="sdict-iconbtn" data-sdict-def="up" aria-label="' + esc(T.moveUp) + '" title="' + esc(T.moveUp) + '">&#8593;</button>' : '')
       + '<button type="button" class="sdict-iconbtn sdict-iconbtn--danger" data-sdict-def="del" aria-label="' + esc(T.removeMeaning) + '" title="' + esc(T.removeMeaning) + '">&times;</button>'
       + '</div></div>';
   }
@@ -392,13 +418,14 @@
   }
 
   /** After a suggestion is saved: thank the member and point to where it can be voted on. */
-  function thanks(root, message, onEntry) {
+  function thanks(root, message, onEntry, reviewUrl) {
     return dialog(root, {
       title: T.thanksTitle,
       html: '<div class="sdict-thanks"><span class="sdict-thanks__icon">&#10003;</span><p>' + esc(message) + '</p><p class="sdict-muted">' + esc(T.thanksBody) + '</p></div>',
       buttons: [{ label: onEntry ? T.seeSuggestions : T.seeQueue, kind: 'primary', value: true }]
     }).then(function () {
-      if (onEntry) { goProposals(root); } else if (cfg.reviewUrl) { window.location.assign(cfg.reviewUrl); } else { window.location.reload(); }
+      var to = reviewUrl || cfg.reviewUrl;
+      if (onEntry) { goProposals(root); } else if (to) { window.location.assign(to); } else { window.location.reload(); }
     });
   }
 
@@ -413,16 +440,31 @@
     var withDefs = mode !== 'propose-edit';
     var list = function (v) { return (v || []).join(', '); };
     var title = { 'new-entry': T.addWord, 'edit-entry': T.editWord, 'propose-new': T.suggestWord, 'propose-edit': T.suggestCorrection }[mode];
+
+    // Which dictionary the word goes in. A new word on the list of dictionaries picks one; a
+    // site editor can move a word to another one. Only dictionaries the visitor may use are offered.
+    var dictId = dictOf(root, entry);
+    var picks = DICT_LIST.filter(function (d) { return editor ? d.canManage : d.canPropose; });
+    var pickDict = DICT_LIST.length > 1 && ((mode !== 'edit-entry' && mode !== 'propose-edit' && !dictId) || (mode === 'edit-entry' && cfg.canManage));
+    // With one dictionary to choose from it is chosen already, and still shown so the visitor sees where the word goes.
+    if (!dictId && picks.length === 1) { dictId = picks[0].id; }
+    formCtx = ctx(dictId || (picks[0] && picks[0].id) || 0);
+    var dictField = pickDict ? field(T.dictionary, '<select name="dictionary" required>'
+      + (dictId ? '' : '<option value="">' + esc(T.chooseDict) + '</option>')
+      + picks.map(function (d) { return '<option value="' + d.id + '"' + (d.id === dictId ? ' selected' : '') + '>' + esc(d.name) + '</option>'; }).join('')
+      + '</select>', { name: 'dictionary' }) : '';
+
     var html = '<form class="sdict-form" novalidate>'
       + (mode === 'propose-edit' ? '<p class="sdict-form__intro">' + esc(T.correctionIntro) + '</p>' : '')
       + (mode === 'propose-new' ? '<p class="sdict-form__intro">' + esc(T.newIntro) + '</p>' : '')
       + ''
       + '<div class="sdict-grid">'
+      + dictField
       + field(T.word, input('term', e.term || prefill || '', ' required autocomplete="off"'), { name: 'term' })
       + field(T.pronunciation, input('pronunciation', e.pronunciation, ' placeholder="' + esc(T.pronPh) + '"'), { optional: true })
-      + field(T.pos, input('pos', e.pos, ' list="' + uid + '-pos" autocomplete="off"') + datalist(uid + '-pos', cfg.pos), { optional: true })
-      + ((cfg.languages || []).length || cfg.canManage ? field(T.language, choice('language', e.language || cfg.defaultLanguage || '', cfg.languages, uid), { optional: true }) : '')
-      + ((cfg.categories || []).length || cfg.canManage ? field(T.category, choice('category', e.category, cfg.categories, uid), { optional: true }) : '')
+      + field(T.pos, input('pos', e.pos, ' list="' + uid + '-pos" autocomplete="off"') + datalist(uid + '-pos', formCtx.pos), { optional: true })
+      + ((cfg.languages || []).length || formCtx.canManage ? field(T.language, choice('language', e.language || cfg.defaultLanguage || '', cfg.languages, uid), { optional: true }) : '')
+      + ((cfg.categories || []).length || formCtx.canManage ? field(T.category, choice('category', e.category, cfg.categories, uid), { optional: true }) : '')
       + (editor ? field(T.visibility, '<select name="status">' + [['publish', T.published], ['draft', T.draft], ['pending', T.pending], ['private', T.private]].map(function (s) {
           return '<option value="' + s[0] + '"' + ((e.status || 'publish') === s[0] ? ' selected' : '') + '>' + esc(s[1]) + '</option>';
         }).join('') + '</select>') : '')
@@ -455,25 +497,37 @@
           };
           if (withDefs) { data.definitions = readDefs(panel); }
           if (editor) { data.tags = val(panel, 'tags'); data.status = val(panel, 'status'); }
+          var chosen = pickDict ? parseInt(val(panel, 'dictionary'), 10) || 0 : dictId;
+          if (chosen && mode !== 'propose-edit') { data.dictionary = chosen; }
           var bad = false;
+          if (pickDict && !chosen) { setErr(panel, 'dictionary', T.dictRequired); bad = true; }
           if (!data.term) { setErr(panel, 'term', T.wordRequired); bad = true; }
           if (withDefs && !data.definitions.length) { setErr(panel, 'definitions', T.meaningRequired); bad = true; }
-          if (bad) { var first = panel.querySelector('.is-error input, .is-error textarea'); if (first) { first.focus(); } return; }
+          if (bad) { var first = panel.querySelector('.is-error select, .is-error input, .is-error textarea'); if (first) { first.focus(); } return; }
 
           var req;
           if (editor) { req = post('/entry', { id: mode === 'edit-entry' ? e.id : 0, entry: data, summary: val(panel, 'summary') }); }
-          else if (mode === 'propose-new') { req = post('/propose', { kind: 'new', entry: data, reason: val(panel, 'reason') }); }
+          else if (mode === 'propose-new') { req = post('/propose', { kind: 'new', dictionary: chosen, entry: data, reason: val(panel, 'reason') }); }
           else { req = post('/propose', { kind: 'edit', entry_id: e.id, entry: data, reason: val(panel, 'reason') }); }
           busy(btn, true);
           req.then(function (b) {
             close(true);
             if (editor) { window.location.assign((b.data && b.data.url) || window.location.href); return; }
-            thanks(root, b.message, mode === 'propose-edit');
+            thanks(root, b.message, mode === 'propose-edit', ctx(chosen).reviewUrl);
           }).catch(function (err) { busy(btn, false); formError(panel, err); });
         }
       }],
       onOpen: function (panel) {
         wireDefs(panel);
+        var sel = panel.querySelector('select[name="dictionary"]');
+        var posList = panel.querySelector('datalist[id="' + uid + '-pos"]');
+        if (sel && posList) {
+          // Each dictionary can keep its own parts of speech.
+          sel.addEventListener('change', function () {
+            var c = ctx(parseInt(sel.value, 10) || 0);
+            posList.innerHTML = (c.pos || []).map(function (v) { return '<option value="' + esc(v) + '"></option>'; }).join('');
+          });
+        }
         panel.addEventListener('input', function (ev) {
           var f = ev.target.closest('.sdict-field.is-error, .sdict-fieldset.is-error');
           if (f) { fieldMessage(f, ''); }
@@ -486,6 +540,7 @@
   function meaningForm(root, op, target) {
     var e = entryData(root);
     if (!e) { return; }
+    formCtx = ctx(dictOf(root, e));
     var def = null;
     (e.definitions || []).forEach(function (d) { if (d.id === target) { def = d; } });
     if (op !== 'add' && !def) { return; }

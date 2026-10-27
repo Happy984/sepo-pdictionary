@@ -186,6 +186,27 @@ a.sdict-az__l:hover { border-color: var(--sdict-accent-ink); background: var(--s
 .sdict-item__def { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 3px; color: var(--sdict-soft); font-size: .9rem; line-height: 1.5; }
 .sdict-item__lang { display: block; margin-top: 5px; font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sdict-muted); }
 
+/* ---- The list of dictionaries ------------------------------------------- */
+.sdict-masthead__desc { margin-top: 6px; max-width: 64ch; color: var(--sdict-soft); font-size: 1rem; line-height: 1.55; }
+.sdict-crumbs--head { margin: 0 0 6px; font-size: .82rem; }
+.sdict-dicts { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0 26px; }
+@container sd (min-width: 560px) { .sdict-dicts { grid-template-columns: 1fr 1fr; } }
+@container sd (min-width: 900px) { .sdict-dicts { grid-template-columns: 1fr 1fr 1fr; } }
+.sdict-dict { display: flex; }
+.sdict-dict__link { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 18px 20px; border: 1px solid var(--sdict-rule); border-radius: 14px; background: var(--sdict-panel); color: inherit !important; transition: border-color .12s ease, background-color .12s ease; }
+.sdict-dict__link:hover { border-color: var(--sdict-accent-ink); background: var(--sdict-wash); }
+.sdict-dict__name { font-family: var(--sdict-serif); font-size: 1.35rem; font-weight: 700; line-height: 1.2; color: var(--sdict-strong); }
+.sdict-dict__desc { color: var(--sdict-soft); font-size: .92rem; line-height: 1.5; }
+.sdict-dict__meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: auto; padding-top: 4px; color: var(--sdict-muted); font-size: .8rem; font-weight: 600; }
+.sdict-dict__go { display: inline-flex; align-items: center; gap: 4px; color: var(--sdict-accent-ink); font-size: .85rem; font-weight: 700; }
+/* A dictionary with its own accent: the colours worked out from the accent follow it on its card. */
+.sdict-dict__link[style] { --sdict-accent-ink: var(--sdict-accent); }
+.sdict-scope.sdict-dark .sdict-dict__link[style] { --sdict-accent-ink: #d5dedb; }
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .sdict-dict__link[style] { --sdict-wash: color-mix(in srgb, var(--sdict-accent) 7%, transparent); }
+  .sdict-scope.sdict-dark .sdict-dict__link[style] { --sdict-accent-ink: color-mix(in srgb, var(--sdict-accent) 32%, #ffffff); --sdict-wash: color-mix(in srgb, var(--sdict-accent) 14%, transparent); }
+}
+
 .sdict-pos { font-family: var(--sdict-serif); font-style: italic; font-size: .92rem; color: var(--sdict-muted); }
 .sdict-pos--lg { font-size: 1.1rem; color: var(--sdict-accent-ink); }
 .sdict-pron { font-family: var(--sdict-phon); color: var(--sdict-muted); font-size: 1rem; }

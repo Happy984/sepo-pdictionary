@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SepoDictionary\Admin;
 
+use SepoDictionary\Dictionaries;
 use SepoDictionary\Entry;
 use SepoDictionary\History;
 use SepoDictionary\Plugin;
@@ -67,8 +68,20 @@ final class MetaBox
             }
             return $h . '</datalist>';
         };
+        $dict = (int) $s['dictionary'] ?: Dictionaries::defaultId();
+        $choices = array_values(array_filter(Dictionaries::all(), static fn(\WP_Term $t): bool => Plugin::canManage((int) $t->term_id)));
         ?>
         <div class="sdict-admin">
+          <?php if (count($choices) > 1) : ?>
+            <p class="sdict-admin__dict"><label for="sdict-dict"><?php esc_html_e('Dictionary', 'sepo-dictionary'); ?></label>
+              <select id="sdict-dict" name="sd[dictionary]">
+                <?php foreach ($choices as $t) : ?>
+                  <option value="<?php echo (int) $t->term_id; ?>" <?php selected($dict, (int) $t->term_id); ?>><?php echo esc_html($t->name); ?></option>
+                <?php endforeach; ?>
+              </select></p>
+          <?php else : ?>
+            <input type="hidden" name="sd[dictionary]" value="<?php echo (int) $dict; ?>">
+          <?php endif; ?>
           <div class="sdict-admin__grid">
             <p><label for="sdict-pron"><?php esc_html_e('Pronunciation', 'sepo-dictionary'); ?></label>
               <input type="text" id="sdict-pron" name="sd[pronunciation]" value="<?php echo esc_attr($s['pronunciation']); ?>" placeholder="/ʊˈbʊntʊ/"></p>
@@ -86,7 +99,7 @@ final class MetaBox
             </div>
             <p><label for="sdict-pos"><?php esc_html_e('Part of speech', 'sepo-dictionary'); ?></label>
               <input type="text" id="sdict-pos" name="sd[pos]" value="<?php echo esc_attr($s['pos']); ?>" list="sdict-pos-list" autocomplete="off">
-              <?php echo $datalist('sdict-pos-list', Settings::partsOfSpeech()); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
+              <?php echo $datalist('sdict-pos-list', Dictionaries::partsOfSpeech($dict)); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
             <p><label for="sdict-lang"><?php esc_html_e('Language', 'sepo-dictionary'); ?></label>
               <input type="text" id="sdict-lang" name="sd[language]" value="<?php echo esc_attr($s['language']); ?>" list="sdict-lang-list" autocomplete="off">
               <?php echo $datalist('sdict-lang-list', PostType::names(PostType::LANGUAGE)); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
@@ -184,9 +197,16 @@ final class MetaBox
                 $defs[] = ['id' => (string) ($d['id'] ?? ''), 'text' => (string) ($d['text'] ?? ''), 'example' => (string) ($d['example'] ?? '')];
             }
         }
+        $current = Dictionaries::forEntry($id);
+        $target = Dictionaries::id($in['dictionary'] ?? 0) ?: $current;
+        // A word only moves into a dictionary the editor may change.
+        if (!Plugin::canManage($target)) {
+            $target = $current;
+        }
         $state = [
             'term'          => $post->post_title,
             'status'        => in_array($post->post_status, Entry::STATUSES, true) ? $post->post_status : 'draft',
+            'dictionary'    => $target,
             'language'      => $in['language'] ?? '',
             'category'      => $in['category'] ?? '',
             'tags'          => $in['tags'] ?? '',

@@ -28,3 +28,17 @@
 .sdict-admin__audio audio[hidden] { display: none; }
 .sdict-admin__audio-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
 .sdict-admin__audio .button.is-recording { color: #b32d2e; border-color: #b32d2e; background: #fcf0f1; }
+
+/* Dictionary → Dictionaries */
+.sdict-admin-note { max-width: 980px; margin: 14px 20px 6px 0; }
+.sdict-admin-note p { margin: 0; }
+.sdict-admin-warn { margin: 6px 0 0; padding: 8px 12px; border-radius: 6px; background: #fcf6e5; color: #4d3800; }
+.sdict-admin-h2 { margin: 18px 0 0; font-size: 1.3em; }
+.sdict-admin-h3 { margin: 10px 0 0; font-size: 1.05em; }
+.sdict-admin-lead { font-weight: 400; }
+.sdict-admin-default { color: #0a5c36; font-weight: 600; }
+.sdict-admin-num { width: 90px; }
+.term-php .form-field textarea.code { max-width: 360px; }
+.sdict-settings-lead { max-width: 720px; }
+.sdict-admin__dict select { min-width: 240px; }
+.form-field input.sdict-admin-num, .form-table .form-field input.sdict-admin-num { width: 110px; }
