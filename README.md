@@ -136,7 +136,7 @@ Run as many dictionaries as you need on one site, for example one per language o
 3. Go to **Plugins** in the dashboard and activate **Sepo Dictionary**.
 
 > [!NOTE]
-> If you downloaded the repository with GitHub's **Code → Download ZIP**, the folder inside is named after the branch, such as `sepo-dictionary-main`. Rename it to `sepo-dictionary` before uploading. That keeps updates and settings tied to the right folder.
+> If you downloaded the repository with GitHub's **Code → Download ZIP**, the folder inside is named after the branch, such as `sepo-pdictionary-main`. Rename it to `sepo-dictionary` before uploading. That keeps updates and settings tied to the right folder.
 
 ## Getting started
 
