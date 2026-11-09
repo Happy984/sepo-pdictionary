@@ -83,7 +83,7 @@ final class DictionaryWidget extends Widget_Base
     protected function render(): void
     {
         $s = $this->get_settings_for_display();
-        echo Frontend::dictionaryShortcode([ // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
+        $html = Frontend::dictionaryShortcode([
             'dictionary'  => (string) ($s['dictionary'] ?? ''),
             'language'    => (string) ($s['language'] ?? ''),
             'per_page'    => (string) (int) ($s['per_page'] ?? 0),
@@ -91,5 +91,6 @@ final class DictionaryWidget extends Widget_Base
             'letters'     => ($s['letters'] ?? 'yes') === 'yes' ? '1' : '0',
             'title'       => (string) ($s['title'] ?? ''),
         ]);
+        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
     }
 }

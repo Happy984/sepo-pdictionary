@@ -67,7 +67,7 @@ final class Screens
         $dict = isset($_GET['dict']) ? absint($_GET['dict']) : 0;
         $q = isset($_GET['s']) ? sanitize_text_field(wp_unslash((string) $_GET['s'])) : '';
         $page = isset($_GET['paged']) ? max(1, absint($_GET['paged'])) : 1;
-        // phpcs:enable
+        // phpcs:enable WordPress.Security.NonceVerification
         $tabs = [
             'live'     => [__('Waiting', 'sepo-dictionary'), Proposals::LIVE],
             'passed'   => [__('Passed, waiting for you', 'sepo-dictionary'), ['passed']],
@@ -93,7 +93,7 @@ final class Screens
         }
         echo '</ul>';
         echo '<form method="get" class="search-box" style="margin-top:8px"><input type="hidden" name="post_type" value="' . esc_attr(PostType::TYPE) . '"><input type="hidden" name="page" value="' . esc_attr(self::PROPOSALS) . '"><input type="hidden" name="status" value="' . esc_attr($status) . '">'
-            . self::dictSelect($dict)
+            . self::dictSelect($dict) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the select is built from escaped parts.
             . '<select name="kind"><option value="">' . esc_html__('All kinds', 'sepo-dictionary') . '</option>';
         foreach (['new' => __('New words', 'sepo-dictionary'), 'meaning' => __('Meanings', 'sepo-dictionary'), 'edit' => __('Corrections', 'sepo-dictionary')] as $k => $label) {
             echo '<option value="' . esc_attr($k) . '"' . selected($kind, $k, false) . '>' . esc_html($label) . '</option>';

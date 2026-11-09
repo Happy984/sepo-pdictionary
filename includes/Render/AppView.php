@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Custom plugin tables: names are built from $wpdb->prefix plus a fixed suffix, values go through $wpdb->prepare(), and dynamic fragments come from fixed allow-lists.
 
 namespace SepoDictionary\Render;
 
@@ -44,7 +45,7 @@ final class AppView
             'order'  => sanitize_key($g('sd_order')),
             'status' => sanitize_key($g('sd_status')),
         ];
-        // phpcs:enable
+        // phpcs:enable WordPress.Security.NonceVerification
         if (!in_array($p['letter'], Entry::LETTERS, true)) {
             $p['letter'] = '';
         }

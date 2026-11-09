@@ -36,9 +36,6 @@ final class Plugin
 
     public static function boot(): void
     {
-        add_action('init', static function (): void {
-            load_plugin_textdomain('sepo-dictionary', false, dirname(plugin_basename(SDICT_FILE)) . '/languages');
-        }, 1);
 
         PostType::hook();
         Dictionaries::hook();

@@ -214,7 +214,7 @@ final class DictionaryScreen
         /* translators: %d: the site-wide value */
         $ph = sprintf(__('Site: %d', 'sepo-dictionary'), $site);
         echo '<tr class="form-field"><th scope="row"><label for="sdict-o-' . esc_attr($key) . '">' . esc_html($label) . '</label></th><td>'
-            . '<input type="number" class="small-text sdict-admin-num" id="sdict-o-' . esc_attr($key) . '" name="sdict_o[' . esc_attr($key) . ']" value="' . esc_attr($v) . '" min="' . $min . '" max="' . $max . '" placeholder="' . esc_attr($ph) . '">'
+            . '<input type="number" class="small-text sdict-admin-num" id="sdict-o-' . esc_attr($key) . '" name="sdict_o[' . esc_attr($key) . ']" value="' . esc_attr($v) . '" min="' . esc_attr((string) $min) . '" max="' . esc_attr((string) $max) . '" placeholder="' . esc_attr($ph) . '">'
             /* translators: %d: the site-wide value */
             . '<p class="description">' . esc_html(($help !== '' ? $help . ' ' : '') . sprintf(__('Empty follows the site setting (%d).', 'sepo-dictionary'), $site)) . '</p></td></tr>';
     }

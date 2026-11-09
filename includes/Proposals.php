@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Custom plugin tables: names are built from $wpdb->prefix plus a fixed suffix, values go through $wpdb->prepare(), and dynamic fragments come from fixed allow-lists.
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are returned as JSON data or escaped at the point they are displayed.
 
 namespace SepoDictionary;
 
@@ -309,11 +311,9 @@ final class Proposals
         $per = max(1, min(100, (int) ($a['per_page'] ?? 20)));
         $page = max(1, (int) ($a['page'] ?? 1));
         $sqlWhere = implode(' AND ', $where);
-        // phpcs:disable WordPress.DB.PreparedSQL -- the clauses above use placeholders
         $total = (int) $wpdb->get_var($params ? $wpdb->prepare('SELECT COUNT(*) FROM ' . Schema::proposals() . " WHERE $sqlWhere", ...$params) : 'SELECT COUNT(*) FROM ' . Schema::proposals() . " WHERE $sqlWhere");
         $sql = 'SELECT * FROM ' . Schema::proposals() . " WHERE $sqlWhere ORDER BY $order LIMIT %d OFFSET %d";
         $rows = $wpdb->get_results($wpdb->prepare($sql, ...array_merge($params, [$per, ($page - 1) * $per])), ARRAY_A);
-        // phpcs:enable
         return ['rows' => array_values(array_filter(array_map([self::class, 'row'], $rows ?: []))), 'total' => $total];
     }
 

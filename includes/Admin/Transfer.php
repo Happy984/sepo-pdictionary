@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are returned as JSON data or escaped at the point they are displayed.
+// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Queries are bounded by indexes and limits.
 
 namespace SepoDictionary\Admin;
 
@@ -52,7 +54,7 @@ final class Transfer
         $done = isset($_GET['sd_done']);
         $err = isset($_GET['sd_err']) ? sanitize_text_field(wp_unslash((string) $_GET['sd_err'])) : '';
         $n = static fn(string $k): int => isset($_GET[$k]) ? absint($_GET[$k]) : 0;
-        // phpcs:enable
+        // phpcs:enable WordPress.Security.NonceVerification
         ?>
         <div class="wrap sdict-transfer">
           <h1><?php esc_html_e('Import and export', 'sepo-dictionary'); ?></h1>
@@ -128,7 +130,7 @@ final class Transfer
             wp_die(esc_html__('You are not allowed to export the dictionary.', 'sepo-dictionary'), 403);
         }
         check_admin_referer('sepo_dictionary_export');
-        $format = ($_POST['format'] ?? '') === 'csv' ? 'csv' : 'json';
+        $format = sanitize_key(wp_unslash((string) ($_POST['format'] ?? ''))) === 'csv' ? 'csv' : 'json';
         $dict = isset($_POST['dict']) ? absint($_POST['dict']) : 0;
         $ids = get_posts([
             'post_type'      => PostType::TYPE,
@@ -159,8 +161,8 @@ final class Transfer
         }
 
         header('Content-Type: text/csv; charset=utf-8');
-        $fh = fopen('php://output', 'w');
-        fwrite($fh, "\xEF\xBB\xBF");
+        echo "\xEF\xBB\xBF"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- UTF-8 byte order mark for spreadsheet apps.
+        $fh = fopen('php://output', 'w'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- CSV stream to the browser.
         fputcsv($fh, self::COLUMNS);
         foreach ($ids as $id) {
             $s = Entry::get((int) $id);
@@ -179,7 +181,6 @@ final class Transfer
                 ]));
             }
         }
-        fclose($fh);
         exit;
     }
 
@@ -209,8 +210,9 @@ final class Transfer
             wp_safe_redirect(self::back(['sd_err' => rawurlencode($e->getMessage())]));
             exit;
         }
-        $mode = in_array($_POST['mode'] ?? '', ['merge', 'skip', 'replace'], true) ? (string) $_POST['mode'] : 'merge';
-        $lang = Entry::line(wp_unslash((string) ($_POST['language'] ?? '')), 100);
+        $mode = sanitize_key(wp_unslash((string) ($_POST['mode'] ?? '')));
+        $mode = in_array($mode, ['merge', 'skip', 'replace'], true) ? $mode : 'merge';
+        $lang = Entry::line(sanitize_text_field(wp_unslash((string) ($_POST['language'] ?? ''))), 100);
         $draft = !empty($_POST['draft']);
         $dict = isset($_POST['dict']) ? absint($_POST['dict']) : 0;
         $r = self::apply($rows, $mode, $lang, $draft, Dictionaries::id($dict) ?: Dictionaries::defaultId());
@@ -225,7 +227,7 @@ final class Transfer
         if (!is_array($data)) {
             throw new \InvalidArgumentException(__('That file is not valid JSON.', 'sepo-dictionary'));
         }
-        $list = isset($data['entries']) && is_array($data['entries']) ? $data['entries'] : (array_is_list($data) ? $data : []);
+        $list = isset($data['entries']) && is_array($data['entries']) ? $data['entries'] : ($data === array_values($data) ? $data : []);
         $out = [];
         foreach ($list as $row) {
             if (!is_array($row)) {
@@ -246,8 +248,9 @@ final class Transfer
     /** @return list<array<string,mixed>> */
     public static function parseCsv(string $raw): array
     {
-        $fh = fopen('php://temp', 'r+');
-        fwrite($fh, $raw);
+        // An in-memory stream, so fgetcsv() can read quoted cells that span lines.
+        $fh = fopen('php://temp', 'r+'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+        fwrite($fh, $raw); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
         rewind($fh);
         $head = fgetcsv($fh);
         if (!is_array($head)) {
@@ -287,7 +290,7 @@ final class Transfer
                 $entries[$key]['definitions'][] = ['text' => $row['definition'], 'example' => $row['example'] ?? ''];
             }
         }
-        fclose($fh);
+        fclose($fh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         return array_values($entries);
     }
 

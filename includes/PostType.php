@@ -169,11 +169,13 @@ final class PostType
 
     public static function saveCode(int $termId): void
     {
+        // The term screen's own nonce has been checked by WordPress before these hooks run.
+        // phpcs:disable WordPress.Security.NonceVerification.Missing
         if (!isset($_POST['sd_code']) || !current_user_can('manage_categories')) {
             return;
         }
-        // The term screen's own nonce has been checked by WordPress before these hooks run.
-        $code = preg_replace('~[^A-Za-z0-9-]~', '', (string) wp_unslash($_POST['sd_code'])); // phpcs:ignore WordPress.Security.NonceVerification
+        $code = preg_replace('~[^A-Za-z0-9-]~', '', sanitize_text_field(wp_unslash((string) $_POST['sd_code'])));
+        // phpcs:enable WordPress.Security.NonceVerification.Missing
         update_term_meta($termId, 'sd_code', substr((string) $code, 0, 20));
     }
 
