@@ -1,6 +1,15 @@
 # Sepo Dictionary
 
+By [Euneolink Solutions](https://edu.sepodesk.com/) · Plugin page: [edu.sepodesk.com](https://edu.sepodesk.com/)
+
 One or more community dictionaries for WordPress. Members suggest words, meanings and corrections, and the community votes on how accurate they are. Suggestions that win the vote are merged into the entry, and every change is kept in the entry's history.
+
+![Version](https://img.shields.io/badge/version-1.3.4-0b3d33)
+![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759b)
+![PHP](https://img.shields.io/badge/PHP-8.1%2B-777bb4)
+![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
+
+It runs on WordPress alone. It needs no outside service and no other plugin.
 
 <p align="center">
   <a href="https://edu.sepodesk.com/sponsor/projects-maintenance/">
@@ -13,13 +22,6 @@ One or more community dictionaries for WordPress. Members suggest words, meaning
   <br />
   <strong>Every contribution makes a difference. Thank you for supporting our work!</strong>
 </p>
-
-![Version](https://img.shields.io/badge/version-1.3.0-0b3d33)
-![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759b)
-![PHP](https://img.shields.io/badge/PHP-8.1%2B-777bb4)
-![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
-
-It runs on WordPress alone. It needs no outside service and no other plugin.
 
 ## Contents
 
@@ -177,6 +179,25 @@ Pronunciation recordings stay in your media library either way.
 Suggestions, votes and history entries are tied to the member who made them. They are included in WordPress's **Tools → Export Personal Data** and **Tools → Erase Personal Data**.
 
 ## Changelog
+
+### 1.3.4
+
+- The plugin is by Euneolink Solutions. Its plugin page and author page are edu.sepodesk.com.
+
+### 1.3.3
+
+- Readme: screenshots and their captions for the plugin directory.
+
+### 1.3.2
+
+- Admin screens: settings shown as cards, lists in a rounded frame, rounded fields and buttons, pill-shaped tabs and filters, and notices on tinted backgrounds.
+
+### 1.3.1
+
+- Imports of JSON lists no longer depend on array_is_list().
+- Export and import read their options as sanitised values.
+- Passes the WordPress Plugin Check: translator comments on every string with placeholders, escaped output, sanitised request data and documented database access to the plugin's own tables.
+- Tested up to WordPress 7.1.
 
 ### 1.3.0
 
