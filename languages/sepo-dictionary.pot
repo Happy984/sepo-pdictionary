@@ -1,0 +1,2547 @@
+# Copyright (C) 2026 Euneolink Solutions
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Sepo Dictionary 1.3.4\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/sepo-dictionary\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-08T13:04:45+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: sepo-dictionary\n"
+
+#. Plugin Name of the plugin
+#: sepo-dictionary.php
+#: includes/Privacy.php:29
+msgid "Sepo Dictionary"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: sepo-dictionary.php
+msgid "https://edu.sepodesk.com/"
+msgstr ""
+
+#. Description of the plugin
+#: sepo-dictionary.php
+msgid "One or more community dictionaries. Visitors look words up by search or by letter; members suggest new words, new meanings and corrections, and the community votes on their accuracy. Suggestions that win the vote are merged into the entry, and every change is kept in the entry's history. Runs on WordPress alone."
+msgstr ""
+
+#. Author of the plugin
+#: sepo-dictionary.php
+msgid "Euneolink Solutions"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:58
+msgid "Words"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:59
+#: includes/Admin/Screens.php:209
+msgid "Editors"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:60
+msgid "Own settings"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:82
+msgid "Site editors only"
+msgstr ""
+
+#. translators: %d: number of settings
+#: includes/Admin/DictionaryScreen.php:87
+msgid "%d setting"
+msgid_plural "%d settings"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of settings
+#: includes/Admin/DictionaryScreen.php:87
+msgid "Site settings"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:96
+msgid "Open on the site"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:98
+msgid "Default"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:108
+#: includes/Admin/DictionaryScreen.php:146
+msgid "Editors of this dictionary"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:109
+#: includes/Admin/DictionaryScreen.php:147
+msgid "username or email, one per line"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:111
+msgid "After adding the dictionary, open it to give it settings of its own, such as its voting rules or accent colour."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:122
+msgid "Address"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:124
+msgid "Words in this dictionary live under this address. Changing the slug changes it; old links redirect."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:126
+msgid "Choose the dictionary page under Dictionary → Settings so this address can be shown."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:131
+msgid "Default dictionary"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:133
+msgid "This is the default dictionary. Words added without a dictionary go here, and it cannot be deleted."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:135
+msgid "Make this the default dictionary"
+msgstr ""
+
+#. translators: %s: names that were typed
+#: includes/Admin/DictionaryScreen.php:152
+msgid "No member was found for: %s"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:157
+msgid "Settings for this dictionary"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:158
+msgid "Leave a setting on \"Site setting\" to follow Dictionary → Settings. Anything you set here applies to this dictionary only."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:160
+#: includes/Admin/Screens.php:164
+#: includes/Elementor/DictionaryWidget.php:76
+msgid "Accent colour"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:160
+msgid "Buttons, the selected letter and highlights on this dictionary's pages."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:161
+#: includes/Admin/Screens.php:170
+msgid "Words per page"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:162
+#: includes/Admin/Screens.php:172
+#: includes/Elementor/WordOfDayWidget.php:23
+#: includes/Elementor/WordOfDayWidget.php:50
+#: includes/Elementor/WordOfDayWidget.php:59
+#: includes/Embeds.php:62
+#: includes/Frontend.php:420
+#: includes/Render/AppView.php:215
+#: assets/js/blocks.js:73
+#: assets/js/blocks.js:82
+#: assets/js/blocks.js:85
+msgid "Word of the day"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:164
+#: includes/Admin/Screens.php:174
+msgid "Parts of speech"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:166
+msgid "One per line. Leave empty to use the site's list, shown faintly."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:168
+#: includes/Admin/Screens.php:179
+#: includes/Render/Parts.php:194
+msgid "Community review"
+msgstr ""
+
+#. translators: 1: open suggestions, 2: suggestions waiting for an editor
+#: includes/Admin/DictionaryScreen.php:169
+#: includes/Admin/DictionaryScreen.php:188
+#: includes/Admin/Screens.php:31
+#: includes/Admin/Screens.php:32
+#: includes/Admin/Screens.php:83
+#: includes/Admin/Screens.php:182
+#: includes/Render/EntryView.php:63
+msgid "Suggestions"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:169
+msgid "Signed-in members may suggest words, meanings and corrections here."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:170
+#: includes/Admin/Screens.php:185
+msgid "Votes needed"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:171
+#: includes/Admin/Screens.php:188
+msgid "Lead needed"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:172
+#: includes/Admin/Screens.php:191
+msgid "Decline when behind by"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:173
+#: includes/Admin/Screens.php:193
+msgid "Voting period (days)"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:173
+#: includes/Admin/Screens.php:195
+msgid "0 keeps voting open until a suggestion is accepted or declined."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:174
+msgid "When voting closes"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:174
+msgid "Accept the leading suggestion if more members found it accurate than not."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:175
+#: includes/Admin/Screens.php:197
+msgid "Editor check"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:175
+msgid "Suggestions that win the vote wait for an editor before they are merged."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:176
+#: includes/Admin/Screens.php:200
+msgid "Open suggestions per member"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:176
+msgid "0 for no limit. Counted in this dictionary only."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:178
+#: includes/Admin/Screens.php:205
+msgid "Email"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:181
+msgid "Editors' address"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:183
+msgid "Where to send this dictionary's suggestions that need an editor. Its own editors are emailed too."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:184
+msgid "New suggestions"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:184
+msgid "Also email editors about every new suggestion in this dictionary."
+msgstr ""
+
+#. translators: 1: open suggestions, 2: suggestions waiting for an editor
+#: includes/Admin/DictionaryScreen.php:188
+msgid "%1$d open for votes, %2$d waiting for an editor"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:193
+msgid "These members can add and change words, record pronunciations, settle suggestions and restore history in this dictionary only, from its pages on the site. The site's editors can always manage every dictionary."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:200
+msgid "Site setting (on)"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:200
+msgid "Site setting (off)"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:204
+msgid "On"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:205
+msgid "Off"
+msgstr ""
+
+#. translators: %d: the site-wide value
+#: includes/Admin/DictionaryScreen.php:215
+msgid "Site: %d"
+msgstr ""
+
+#. translators: %d: the site-wide value
+#: includes/Admin/DictionaryScreen.php:219
+msgid "Empty follows the site setting (%d)."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:228
+msgid "Leave empty for the site's colour."
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:280
+msgid "Filter by dictionary"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:281
+#: includes/Admin/Screens.php:129
+#: includes/Admin/Transfer.php:119
+#: includes/Dictionaries.php:91
+#: includes/Render/AppView.php:88
+msgid "All dictionaries"
+msgstr ""
+
+#: includes/Admin/DictionaryScreen.php:295
+msgid "Each dictionary has its own page and its own words; the same word can be in more than one. With two or more dictionaries, the dictionary page lists them all."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:25
+#: includes/Render/EntryView.php:60
+msgid "Entry"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:26
+msgid "Suggestions and history"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:39
+#: includes/Admin/MetaBox.php:117
+#: includes/Diff.php:169
+#: includes/Frontend.php:233
+#: includes/Render/EntryView.php:62
+msgid "Meaning"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:40
+#: includes/Admin/MetaBox.php:118
+msgid "Example sentence (optional)"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:41
+#: includes/Admin/MetaBox.php:121
+#: includes/Frontend.php:239
+msgid "Move up"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:42
+#: includes/Admin/MetaBox.php:122
+msgid "Move down"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:43
+#: includes/Admin/MetaBox.php:96
+#: includes/Admin/MetaBox.php:123
+#: includes/Render/ProposalView.php:200
+msgid "Remove"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:46
+msgid "Choose a pronunciation recording"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:47
+msgid "Use this recording"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:48
+#: includes/Admin/MetaBox.php:94
+msgid "Record"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:49
+msgid "Stop and keep"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:50
+msgid "Saving the recording…"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:51
+msgid "Recorded. Update the entry to keep it."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:52
+msgid "The microphone could not be used. Allow it for this site, or upload a file instead."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:53
+msgid "Recording needs a secure (https) page in this browser. Upload a file instead."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:76
+#: includes/Admin/Screens.php:129
+#: includes/Admin/Transfer.php:76
+#: includes/Dictionaries.php:89
+#: includes/Diff.php:23
+#: includes/Elementor/DictionaryWidget.php:23
+#: includes/Elementor/DictionaryWidget.php:62
+#: includes/Elementor/DictionaryWidget.php:68
+#: includes/Elementor/WordOfDayWidget.php:56
+#: includes/Embeds.php:34
+#: includes/Frontend.php:223
+#: includes/Frontend.php:359
+#: includes/PostType.php:53
+#: includes/PostType.php:55
+#: includes/Render/EntryView.php:49
+#: includes/Settings.php:118
+#: assets/js/blocks.js:13
+#: assets/js/blocks.js:23
+#: assets/js/blocks.js:34
+msgid "Dictionary"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:86
+#: includes/Diff.php:27
+#: includes/Frontend.php:219
+#: includes/Rest.php:244
+msgid "Pronunciation"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:90
+#: includes/Frontend.php:294
+msgid "Pronunciation recording"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:95
+msgid "Choose or upload"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:100
+#: includes/Diff.php:29
+#: includes/Frontend.php:221
+#: includes/PostType.php:120
+msgid "Part of speech"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:103
+#: includes/Diff.php:24
+#: includes/Elementor/DictionaryWidget.php:70
+#: includes/Elementor/WordOfDayWidget.php:58
+#: includes/Frontend.php:222
+#: includes/PostType.php:83
+#: includes/Render/Parts.php:69
+#: assets/js/blocks.js:36
+#: assets/js/blocks.js:84
+msgid "Language"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:106
+#: includes/Diff.php:25
+#: includes/Frontend.php:226
+#: includes/PostType.php:94
+#: includes/Render/AppView.php:259
+msgid "Category"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:111
+#: includes/Admin/Screens.php:98
+#: includes/Diff.php:30
+#: includes/Frontend.php:232
+#: includes/PostType.php:121
+#: includes/Render/AppView.php:323
+msgid "Meanings"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:118
+#: includes/Frontend.php:235
+msgid "Example sentence"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:128
+msgid "Add a meaning"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:131
+#: includes/Diff.php:31
+#: includes/Entry.php:518
+#: includes/Frontend.php:240
+#: includes/Render/EntryView.php:176
+#: includes/Render/ProposalView.php:240
+msgid "Synonyms"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:133
+#: includes/Diff.php:32
+#: includes/Entry.php:518
+#: includes/Frontend.php:241
+#: includes/Render/EntryView.php:176
+#: includes/Render/ProposalView.php:240
+msgid "Antonyms"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:135
+#: includes/Diff.php:33
+#: includes/Entry.php:518
+#: includes/Frontend.php:242
+#: includes/Render/EntryView.php:176
+#: includes/Render/ProposalView.php:240
+msgid "See also"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:137
+#: includes/Diff.php:26
+#: includes/Frontend.php:243
+#: includes/PostType.php:104
+msgid "Tags"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:140
+msgid "Separate words with commas. Words that have their own entry are linked on the page."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:141
+#: includes/Diff.php:34
+#: includes/Entry.php:524
+#: includes/Frontend.php:245
+#: includes/Render/EntryView.php:184
+#: includes/Render/ProposalView.php:246
+msgid "Origin"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:143
+#: includes/Diff.php:35
+#: includes/Frontend.php:246
+#: includes/Render/EntryView.php:184
+msgid "Usage notes"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:145
+#: includes/Diff.php:36
+#: includes/Frontend.php:247
+msgid "Source"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:147
+msgid "Summary of this change"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:148
+msgid "Optional. Shown in the entry history."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:159
+msgid "suggestion waiting"
+msgid_plural "suggestions waiting"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Admin/MetaBox.php:161
+msgid "Review"
+msgstr ""
+
+#: includes/Admin/MetaBox.php:165
+msgid "Changes are recorded here once the entry is saved."
+msgstr ""
+
+#: includes/Admin/MetaBox.php:177
+msgid "See the full history"
+msgstr ""
+
+#: includes/Admin/Screens.php:33
+#: includes/Admin/Screens.php:150
+msgid "Dictionary settings"
+msgstr ""
+
+#: includes/Admin/Screens.php:33
+#: includes/Admin/Screens.php:47
+msgid "Settings"
+msgstr ""
+
+#: includes/Admin/Screens.php:72
+msgid "Waiting"
+msgstr ""
+
+#: includes/Admin/Screens.php:73
+msgid "Passed, waiting for you"
+msgstr ""
+
+#: includes/Admin/Screens.php:74
+#: includes/Proposals.php:1002
+#: includes/Render/AppView.php:404
+msgid "Accepted"
+msgstr ""
+
+#: includes/Admin/Screens.php:75
+msgid "Declined or closed"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Admin/Screens.php:86
+msgid "for \"%s\""
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Admin/Screens.php:86
+msgid "Show all"
+msgstr ""
+
+#: includes/Admin/Screens.php:97
+#: includes/Render/AppView.php:323
+msgid "All kinds"
+msgstr ""
+
+#: includes/Admin/Screens.php:98
+#: includes/Render/AppView.php:323
+msgid "New words"
+msgstr ""
+
+#: includes/Admin/Screens.php:98
+#: includes/Render/AppView.php:323
+msgid "Corrections"
+msgstr ""
+
+#: includes/Admin/Screens.php:101
+msgid "Search suggestions"
+msgstr ""
+
+#: includes/Admin/Screens.php:101
+#: includes/Diff.php:21
+#: includes/Frontend.php:218
+#: includes/PostType.php:54
+#: includes/Privacy.php:56
+#: includes/Privacy.php:72
+#: assets/js/blocks.js:59
+#: assets/js/blocks.js:60
+msgid "Word"
+msgstr ""
+
+#: includes/Admin/Screens.php:102
+#: includes/Render/AppView.php:263
+#: includes/Render/AppView.php:360
+msgid "Filter"
+msgstr ""
+
+#: includes/Admin/Screens.php:108
+msgid "Each dictionary sets its own voting rules. Choose a dictionary to see its rules."
+msgstr ""
+
+#: includes/Admin/Screens.php:110
+msgid "Change the rules"
+msgstr ""
+
+#: includes/Admin/Screens.php:112
+#: includes/Render/AppView.php:371
+msgid "Nothing here."
+msgstr ""
+
+#: includes/Admin/Screens.php:152
+msgid "Settings saved."
+msgstr ""
+
+#. translators: %s: link to the list of dictionaries
+#: includes/Admin/Screens.php:156
+msgid "These settings apply to every dictionary. Each dictionary can change any of them for itself under %s."
+msgstr ""
+
+#. translators: %s: link to the list of dictionaries
+#: includes/Admin/Screens.php:156
+msgid "Dictionary → Dictionaries"
+msgstr ""
+
+#: includes/Admin/Screens.php:162
+msgid "Look and pages"
+msgstr ""
+
+#: includes/Admin/Screens.php:166
+msgid "Buttons, the selected letter and highlights. Leave empty for the default deep green."
+msgstr ""
+
+#: includes/Admin/Screens.php:167
+msgid "Dictionary page"
+msgstr ""
+
+#: includes/Admin/Screens.php:168
+#: includes/Frontend.php:197
+msgid "— None —"
+msgstr ""
+
+#: includes/Admin/Screens.php:169
+msgid "The page with the [sepo_dictionary] shortcode or the Dictionary block. With several dictionaries it lists them, and each dictionary's own address shows that dictionary on this page."
+msgstr ""
+
+#: includes/Admin/Screens.php:173
+msgid "Show a featured word at the top of the dictionary, changing every day"
+msgstr ""
+
+#: includes/Admin/Screens.php:176
+msgid "One per line. Offered as suggestions in the forms."
+msgstr ""
+
+#: includes/Admin/Screens.php:183
+msgid "Signed-in members may suggest words, meanings and corrections"
+msgstr ""
+
+#: includes/Admin/Screens.php:184
+msgid "Editors can always add and change entries directly. Members can always vote."
+msgstr ""
+
+#: includes/Admin/Screens.php:187
+msgid "How many members must vote that a suggestion is accurate before it can be accepted."
+msgstr ""
+
+#: includes/Admin/Screens.php:190
+msgid "How many more \"accurate\" than \"not accurate\" votes it needs. When several suggestions compete for the same thing, the one with the most support wins."
+msgstr ""
+
+#: includes/Admin/Screens.php:196
+msgid "When voting closes, accept the leading suggestion if more members found it accurate than not"
+msgstr ""
+
+#: includes/Admin/Screens.php:198
+msgid "Suggestions that win the vote wait for an editor before they are merged"
+msgstr ""
+
+#: includes/Admin/Screens.php:199
+msgid "Either way, a suggestion whose entry changed after it was made always goes to an editor rather than overwriting the newer text."
+msgstr ""
+
+#: includes/Admin/Screens.php:202
+msgid "0 for no limit."
+msgstr ""
+
+#: includes/Admin/Screens.php:207
+msgid "Members"
+msgstr ""
+
+#: includes/Admin/Screens.php:208
+msgid "Email members when their suggestion is accepted, declined or closed"
+msgstr ""
+
+#: includes/Admin/Screens.php:211
+msgid "Where to send suggestions that need an editor. Empty uses the site admin address."
+msgstr ""
+
+#: includes/Admin/Screens.php:212
+msgid "Also email editors about every new suggestion"
+msgstr ""
+
+#: includes/Admin/Screens.php:215
+msgid "Data"
+msgstr ""
+
+#: includes/Admin/Screens.php:217
+msgid "When deleting the plugin"
+msgstr ""
+
+#: includes/Admin/Screens.php:218
+msgid "Delete all entries, suggestions, votes and history"
+msgstr ""
+
+#: includes/Admin/Screens.php:229
+msgid "You are not allowed to change these settings."
+msgstr ""
+
+#: includes/Admin/Transfer.php:37
+#: includes/Admin/Transfer.php:60
+msgid "Import and export"
+msgstr ""
+
+#. translators: 1: added, 2: updated, 3: skipped
+#: includes/Admin/Transfer.php:64
+msgid "Import finished: %1$d added, %2$d updated, %3$d skipped."
+msgstr ""
+
+#: includes/Admin/Transfer.php:71
+msgid "Export"
+msgstr ""
+
+#: includes/Admin/Transfer.php:72
+msgid "Download every entry, with all its meanings and details. JSON keeps everything and can be imported back; CSV opens in a spreadsheet, with one row per meaning."
+msgstr ""
+
+#: includes/Admin/Transfer.php:77
+msgid "Include drafts and private entries"
+msgstr ""
+
+#: includes/Admin/Transfer.php:78
+msgid "Download JSON"
+msgstr ""
+
+#: includes/Admin/Transfer.php:79
+msgid "Download CSV"
+msgstr ""
+
+#: includes/Admin/Transfer.php:84
+#: includes/Admin/Transfer.php:104
+msgid "Import"
+msgstr ""
+
+#. translators: %s: list of column names
+#: includes/Admin/Transfer.php:87
+msgid "Upload a JSON file exported from this plugin, or a CSV file with a header row using these columns: %s. Rows with the same dictionary, word and language become one entry with several meanings."
+msgstr ""
+
+#: includes/Admin/Transfer.php:93
+msgid "Dictionary for rows that name none"
+msgstr ""
+
+#: includes/Admin/Transfer.php:94
+msgid "When a word is already in the dictionary"
+msgstr ""
+
+#: includes/Admin/Transfer.php:96
+msgid "Add any new meanings to it, and fill in empty details"
+msgstr ""
+
+#: includes/Admin/Transfer.php:97
+msgid "Leave it as it is"
+msgstr ""
+
+#: includes/Admin/Transfer.php:98
+msgid "Replace it with the imported entry"
+msgstr ""
+
+#: includes/Admin/Transfer.php:100
+msgid "Language for rows that name none"
+msgstr ""
+
+#: includes/Admin/Transfer.php:103
+msgid "Import new entries as drafts"
+msgstr ""
+
+#: includes/Admin/Transfer.php:130
+msgid "You are not allowed to export the dictionary."
+msgstr ""
+
+#: includes/Admin/Transfer.php:196
+msgid "You are not allowed to import into the dictionary."
+msgstr ""
+
+#: includes/Admin/Transfer.php:201
+msgid "The file could not be uploaded."
+msgstr ""
+
+#: includes/Admin/Transfer.php:228
+msgid "That file is not valid JSON."
+msgstr ""
+
+#: includes/Admin/Transfer.php:257
+msgid "The CSV file is empty."
+msgstr ""
+
+#: includes/Admin/Transfer.php:263
+msgid "The CSV file needs a \"term\" column."
+msgstr ""
+
+#: includes/Admin/Transfer.php:321
+msgid "Imported"
+msgstr ""
+
+#: includes/Dictionaries.php:88
+#: includes/Dictionaries.php:90
+#: includes/Render/AppView.php:179
+#: includes/Render/EntryView.php:47
+#: includes/Render/Parts.php:193
+msgid "Dictionaries"
+msgstr ""
+
+#: includes/Dictionaries.php:92
+msgid "Edit dictionary"
+msgstr ""
+
+#: includes/Dictionaries.php:93
+msgid "View dictionary"
+msgstr ""
+
+#: includes/Dictionaries.php:94
+msgid "Update dictionary"
+msgstr ""
+
+#: includes/Dictionaries.php:95
+msgid "Add a dictionary"
+msgstr ""
+
+#: includes/Dictionaries.php:96
+msgid "New dictionary name"
+msgstr ""
+
+#: includes/Dictionaries.php:97
+msgid "Search dictionaries"
+msgstr ""
+
+#: includes/Dictionaries.php:98
+msgid "No dictionaries yet."
+msgstr ""
+
+#: includes/Dictionaries.php:99
+msgid "← Back to dictionaries"
+msgstr ""
+
+#: includes/Dictionaries.php:122
+#: includes/Dictionaries.php:464
+msgid "Main dictionary"
+msgstr ""
+
+#: includes/Diff.php:22
+#: includes/Frontend.php:227
+msgid "Visibility"
+msgstr ""
+
+#: includes/Diff.php:28
+msgid "Recording"
+msgstr ""
+
+#: includes/Diff.php:108
+#: includes/Diff.php:152
+msgid "Added"
+msgstr ""
+
+#: includes/Diff.php:111
+#: includes/Diff.php:169
+msgid "Removed"
+msgstr ""
+
+#: includes/Diff.php:113
+msgid "Replaced"
+msgstr ""
+
+#: includes/Diff.php:119
+#: includes/Frontend.php:228
+msgid "Published"
+msgstr ""
+
+#: includes/Diff.php:120
+#: includes/Frontend.php:229
+#: includes/Render/Parts.php:162
+msgid "Draft"
+msgstr ""
+
+#: includes/Diff.php:121
+#: includes/Frontend.php:230
+msgid "Pending review"
+msgstr ""
+
+#: includes/Diff.php:122
+#: includes/Frontend.php:231
+#: includes/Render/Parts.php:164
+msgid "Private"
+msgstr ""
+
+#: includes/Diff.php:123
+msgid "In the trash"
+msgstr ""
+
+#. translators: %d: the meaning's number
+#: includes/Diff.php:149
+msgid "Meaning %d"
+msgstr ""
+
+#: includes/Diff.php:161
+msgid "Changed"
+msgstr ""
+
+#: includes/Elementor/DictionaryWidget.php:57
+#: includes/Elementor/WordOfDayWidget.php:45
+#: includes/Embeds.php:88
+#: includes/Render/Parts.php:70
+msgid "All languages"
+msgstr ""
+
+#: includes/Elementor/DictionaryWidget.php:71
+#: assets/js/blocks.js:37
+msgid "Words per page (0 uses the setting)"
+msgstr ""
+
+#: includes/Elementor/DictionaryWidget.php:72
+#: assets/js/blocks.js:38
+msgid "Show the word of the day"
+msgstr ""
+
+#: includes/Elementor/DictionaryWidget.php:73
+#: assets/js/blocks.js:39
+msgid "Show the A to Z"
+msgstr ""
+
+#: includes/Elementor/DictionaryWidget.php:74
+#: includes/Elementor/WordOfDayWidget.php:59
+#: assets/js/blocks.js:40
+#: assets/js/blocks.js:85
+msgid "Heading"
+msgstr ""
+
+#: includes/Embeds.php:20
+msgid "Sepo dictionary"
+msgstr ""
+
+#: includes/Embeds.php:55
+#: assets/js/blocks.js:51
+#: assets/js/blocks.js:63
+msgid "Dictionary word"
+msgstr ""
+
+#: includes/Embeds.php:76
+msgid "All dictionaries (or the one in the address)"
+msgstr ""
+
+#: includes/Embeds.php:76
+msgid "The dictionary"
+msgstr ""
+
+#: includes/Entry.php:212
+#: includes/Entry.php:215
+#: includes/History.php:115
+msgid "That entry no longer exists."
+msgstr ""
+
+#: includes/Entry.php:219
+msgid "A word is required."
+msgstr ""
+
+#: includes/Frontend.php:190
+msgid "Could not reach the site. Check your connection and try again."
+msgstr ""
+
+#: includes/Frontend.php:191
+msgid "Cancel"
+msgstr ""
+
+#: includes/Frontend.php:192
+#: includes/Render/Parts.php:216
+msgid "Close"
+msgstr ""
+
+#: includes/Frontend.php:193
+msgid "Save"
+msgstr ""
+
+#: includes/Frontend.php:194
+msgid "Saving…"
+msgstr ""
+
+#: includes/Frontend.php:195
+msgid "optional"
+msgstr ""
+
+#: includes/Frontend.php:196
+msgid "Please fill this in."
+msgstr ""
+
+#. translators: %s: what was typed
+#: includes/Frontend.php:199
+msgid "No entry matches \"%s\"."
+msgstr ""
+
+#. translators: %s: what was typed
+#: includes/Frontend.php:201
+msgid "See all results for \"%s\""
+msgstr ""
+
+#: includes/Frontend.php:202
+#: includes/PostType.php:58
+#: includes/Render/AppView.php:98
+#: includes/Render/AppView.php:145
+msgid "Add a word"
+msgstr ""
+
+#: includes/Frontend.php:203
+msgid "Edit entry"
+msgstr ""
+
+#: includes/Frontend.php:204
+#: includes/Render/AppView.php:100
+#: includes/Render/AppView.php:147
+msgid "Suggest a word"
+msgstr ""
+
+#: includes/Frontend.php:205
+#: includes/Render/EntryView.php:240
+msgid "Suggest a correction"
+msgstr ""
+
+#: includes/Frontend.php:206
+#: includes/Render/EntryView.php:239
+msgid "Suggest a meaning"
+msgstr ""
+
+#: includes/Frontend.php:207
+#: includes/Render/EntryView.php:164
+msgid "Suggest a better meaning"
+msgstr ""
+
+#: includes/Frontend.php:208
+msgid "Flag a meaning as wrong"
+msgstr ""
+
+#: includes/Frontend.php:209
+msgid "Your word is put to the community. Members vote on whether the meaning is accurate, and it joins the dictionary when enough of them agree."
+msgstr ""
+
+#: includes/Frontend.php:210
+msgid "Change what is wrong in the details below. Only the fields you change are put to the vote; meanings have their own buttons on the entry."
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Frontend.php:212
+msgid "Add a meaning of \"%s\" that the entry does not list yet. Members vote on whether it is accurate."
+msgstr ""
+
+#: includes/Frontend.php:213
+msgid "Rewrite the meaning so it is more accurate. If the vote favours your wording, it replaces the current one and the old wording stays in the history."
+msgstr ""
+
+#: includes/Frontend.php:214
+msgid "If the vote agrees this meaning is wrong, it is removed from the entry. The removal is kept in the history."
+msgstr ""
+
+#: includes/Frontend.php:215
+msgid "Current meaning"
+msgstr ""
+
+#: includes/Frontend.php:216
+#: includes/Proposals.php:993
+msgid "New meaning"
+msgstr ""
+
+#: includes/Frontend.php:217
+#: includes/Proposals.php:991
+msgid "Better meaning"
+msgstr ""
+
+#: includes/Frontend.php:220
+msgid "e.g. /ʊˈbʊntʊ/"
+msgstr ""
+
+#: includes/Frontend.php:224
+msgid "Choose a dictionary"
+msgstr ""
+
+#: includes/Frontend.php:225
+#: includes/Proposals.php:57
+#: includes/Rest.php:164
+msgid "Choose the dictionary the word belongs in."
+msgstr ""
+
+#: includes/Frontend.php:234
+msgid "What the word means"
+msgstr ""
+
+#: includes/Frontend.php:236
+msgid "An example sentence (optional)"
+msgstr ""
+
+#: includes/Frontend.php:237
+msgid "Add another meaning"
+msgstr ""
+
+#: includes/Frontend.php:238
+msgid "Remove this meaning"
+msgstr ""
+
+#: includes/Frontend.php:244
+msgid "Separate words with commas."
+msgstr ""
+
+#: includes/Frontend.php:248
+msgid "A book, a speaker, a website…"
+msgstr ""
+
+#: includes/Frontend.php:249
+msgid "Summary of the change"
+msgstr ""
+
+#: includes/Frontend.php:250
+msgid "Shown in the entry history"
+msgstr ""
+
+#: includes/Frontend.php:251
+msgid "Why is this accurate?"
+msgstr ""
+
+#: includes/Frontend.php:252
+msgid "Where you know it from, or how it is used. This helps voters."
+msgstr ""
+
+#: includes/Frontend.php:253
+msgid "Explain what is wrong with this meaning."
+msgstr ""
+
+#: includes/Frontend.php:254
+msgid "Say why, so voters can judge."
+msgstr ""
+
+#: includes/Frontend.php:255
+msgid "Submit for voting"
+msgstr ""
+
+#: includes/Frontend.php:256
+#: includes/Proposals.php:86
+msgid "Enter the word."
+msgstr ""
+
+#: includes/Frontend.php:257
+msgid "Write at least one meaning."
+msgstr ""
+
+#: includes/Frontend.php:258
+msgid "This is the same as the current meaning."
+msgstr ""
+
+#: includes/Frontend.php:259
+msgid "Open the entry"
+msgstr ""
+
+#: includes/Frontend.php:260
+msgid "Suggestion received"
+msgstr ""
+
+#: includes/Frontend.php:261
+msgid "You will get an email when it is settled."
+msgstr ""
+
+#: includes/Frontend.php:262
+msgid "See the suggestions"
+msgstr ""
+
+#: includes/Frontend.php:263
+msgid "Go to community review"
+msgstr ""
+
+#: includes/Frontend.php:264
+msgid "Not accurate?"
+msgstr ""
+
+#: includes/Frontend.php:265
+msgid "A short note helps the author and other voters."
+msgstr ""
+
+#: includes/Frontend.php:266
+msgid "What is wrong with it?"
+msgstr ""
+
+#: includes/Frontend.php:267
+msgid "For example: that is the meaning of a different word."
+msgstr ""
+
+#: includes/Frontend.php:268
+msgid "Vote not accurate"
+msgstr ""
+
+#: includes/Frontend.php:269
+msgid "Vote counted."
+msgstr ""
+
+#: includes/Frontend.php:270
+msgid "Vote removed."
+msgstr ""
+
+#: includes/Frontend.php:271
+msgid "That vote settled it: the suggestion is merged into the dictionary."
+msgstr ""
+
+#: includes/Frontend.php:272
+msgid "That vote settled it: the suggestion passed and is waiting for an editor."
+msgstr ""
+
+#: includes/Frontend.php:273
+msgid "That vote settled it: the suggestion is declined."
+msgstr ""
+
+#: includes/Frontend.php:274
+msgid "Move this entry to the trash?"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Frontend.php:276
+msgid "\"%s\" disappears from the dictionary. An editor can bring it back from the trash in the dashboard."
+msgstr ""
+
+#: includes/Frontend.php:277
+#: includes/Render/EntryView.php:132
+msgid "Move to the trash"
+msgstr ""
+
+#: includes/Frontend.php:278
+msgid "Withdraw your suggestion?"
+msgstr ""
+
+#: includes/Frontend.php:279
+msgid "Voting stops. You can put it forward again later from My suggestions, but its votes start again from zero."
+msgstr ""
+
+#: includes/Frontend.php:280
+#: includes/Render/ProposalView.php:98
+msgid "Withdraw"
+msgstr ""
+
+#: includes/Frontend.php:281
+msgid "Accept and merge?"
+msgstr ""
+
+#: includes/Frontend.php:282
+msgid "The suggestion is merged into the entry now, whatever the vote. The change is recorded in the entry history."
+msgstr ""
+
+#: includes/Frontend.php:283
+#: includes/Render/ProposalView.php:106
+msgid "Accept and merge"
+msgstr ""
+
+#: includes/Frontend.php:284
+msgid "Decline this suggestion?"
+msgstr ""
+
+#: includes/Frontend.php:285
+msgid "Note for the author"
+msgstr ""
+
+#: includes/Frontend.php:286
+msgid "Why it is not being accepted"
+msgstr ""
+
+#: includes/Frontend.php:287
+#: includes/Render/ProposalView.php:107
+msgid "Decline"
+msgstr ""
+
+#: includes/Frontend.php:288
+msgid "Delete this suggestion?"
+msgstr ""
+
+#: includes/Frontend.php:289
+msgid "The suggestion and its votes are removed for good. Use this for spam; decline anything else."
+msgstr ""
+
+#: includes/Frontend.php:290
+msgid "Delete"
+msgstr ""
+
+#: includes/Frontend.php:291
+msgid "Restore this version?"
+msgstr ""
+
+#: includes/Frontend.php:292
+msgid "The entry goes back to how it read after this change. The restore is added to the history, so nothing is lost."
+msgstr ""
+
+#: includes/Frontend.php:293
+msgid "Restore"
+msgstr ""
+
+#: includes/Frontend.php:295
+msgid "Current recording"
+msgstr ""
+
+#: includes/Frontend.php:296
+msgid "Remove recording"
+msgstr ""
+
+#: includes/Frontend.php:297
+msgid "Start recording"
+msgstr ""
+
+#: includes/Frontend.php:298
+msgid "Stop"
+msgstr ""
+
+#: includes/Frontend.php:299
+msgid "Record again"
+msgstr ""
+
+#: includes/Frontend.php:300
+msgid "Say the word clearly, once or twice, then stop. Listen back before you save."
+msgstr ""
+
+#: includes/Frontend.php:301
+msgid "This browser cannot record here. Recording needs a secure (https) page; you can still upload a sound file."
+msgstr ""
+
+#: includes/Frontend.php:302
+msgid "Or upload a sound file"
+msgstr ""
+
+#: includes/Frontend.php:303
+msgid "Upload a sound file"
+msgstr ""
+
+#: includes/Frontend.php:304
+msgid "Save recording"
+msgstr ""
+
+#: includes/Frontend.php:305
+msgid "Record the word or choose a sound file first."
+msgstr ""
+
+#: includes/Frontend.php:306
+msgid "The microphone is blocked. Allow it in the browser's address bar, or upload a sound file instead."
+msgstr ""
+
+#: includes/Frontend.php:307
+msgid "Link copied."
+msgstr ""
+
+#: includes/Frontend.php:308
+msgid "Copy"
+msgstr ""
+
+#: includes/Frontend.php:309
+msgid "Copied"
+msgstr ""
+
+#: includes/Frontend.php:310
+msgid "Could not copy. Select the text and copy it yourself."
+msgstr ""
+
+#: includes/Frontend.php:311
+#: includes/Render/EntryView.php:129
+msgid "Cite this entry"
+msgstr ""
+
+#. translators: 1: the word, 2: site name, 3: date accessed, 4: address
+#: includes/Frontend.php:313
+msgid "\"%1$s.\" %2$s Dictionary. Accessed %3$s. %4$s"
+msgstr ""
+
+#: includes/History.php:110
+#: includes/Rest.php:309
+msgid "That version could not be found."
+msgstr ""
+
+#: includes/History.php:124
+msgid "The entry already matches that version."
+msgstr ""
+
+#. translators: %s: date and time of the version
+#: includes/History.php:131
+msgid "Restored the version from %s"
+msgstr ""
+
+#: includes/History.php:144
+msgid "Entry created"
+msgstr ""
+
+#: includes/History.php:145
+msgid "Proposal merged"
+msgstr ""
+
+#: includes/History.php:146
+msgid "Earlier version restored"
+msgstr ""
+
+#: includes/History.php:147
+msgid "Moved to the trash"
+msgstr ""
+
+#: includes/History.php:148
+msgid "Taken out of the trash"
+msgstr ""
+
+#: includes/History.php:149
+msgid "Edited"
+msgstr ""
+
+#. translators: %s: name of a dictionary
+#: includes/Mail.php:59
+msgid "(%s)"
+msgstr ""
+
+#. translators: 1: kind of suggestion, 2: the word
+#: includes/Mail.php:68
+msgid "New suggestion: %1$s for \"%2$s\""
+msgstr ""
+
+#. translators: 1: member's name, 2: kind of suggestion, 3: the word, 4: link
+#: includes/Mail.php:71
+msgid ""
+"%1$s suggested a %2$s for \"%3$s\". It is open for votes:\n"
+"\n"
+"%4$s"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:87
+msgid "A suggestion for \"%s\" is waiting for you"
+msgstr ""
+
+#. translators: 1: kind of suggestion, 2: the word, 3: what changed, 4: link
+#: includes/Mail.php:92
+msgid ""
+"A %1$s for \"%2$s\" won the vote, but the entry changed after it was made: %3$s\n"
+"\n"
+"Please review and merge it:\n"
+"\n"
+"%4$s"
+msgstr ""
+
+#. translators: 1: kind of suggestion, 2: the word, 3: votes for, 4: votes against, 5: link
+#: includes/Mail.php:94
+msgid ""
+"A %1$s for \"%2$s\" passed the community vote (%3$d for, %4$d against). Please review and merge it:\n"
+"\n"
+"%5$s"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:116
+msgid "Your suggestion for \"%s\" was accepted"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:116
+msgid "Thank you. It is now part of the dictionary, and the change is recorded in the entry history."
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:118
+msgid "Your suggestion for \"%s\" was not accepted"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:120
+msgid "Another suggestion for \"%s\" was accepted"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:120
+msgid "A different suggestion for the same thing won the vote. You can put yours forward again as an extra meaning from your suggestions list."
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:122
+msgid "Voting on your suggestion for \"%s\" has closed"
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Mail.php:122
+msgid "It did not gather enough support in time. You can put it forward again from your suggestions list."
+msgstr ""
+
+#. translators: 1: kind of suggestion, 2: votes for, 3: votes against
+#: includes/Mail.php:129
+msgid "Your %1$s received %2$d votes for and %3$d against."
+msgstr ""
+
+#: includes/PostType.php:34
+msgid "Word or phrase"
+msgstr ""
+
+#: includes/PostType.php:56
+#: includes/Render/AppView.php:229
+msgid "All words"
+msgstr ""
+
+#: includes/PostType.php:57
+msgid "Add word"
+msgstr ""
+
+#: includes/PostType.php:59
+msgid "Edit word"
+msgstr ""
+
+#: includes/PostType.php:60
+#: includes/Proposals.php:985
+msgid "New word"
+msgstr ""
+
+#: includes/PostType.php:61
+msgid "View word"
+msgstr ""
+
+#: includes/PostType.php:62
+msgid "Search words"
+msgstr ""
+
+#: includes/PostType.php:63
+msgid "No words yet."
+msgstr ""
+
+#: includes/PostType.php:64
+msgid "No words in the trash."
+msgstr ""
+
+#: includes/PostType.php:82
+msgid "Languages"
+msgstr ""
+
+#: includes/PostType.php:84
+msgid "Add a language"
+msgstr ""
+
+#: includes/PostType.php:85
+msgid "Search languages"
+msgstr ""
+
+#: includes/PostType.php:93
+msgid "Categories"
+msgstr ""
+
+#: includes/PostType.php:95
+msgid "Add a category"
+msgstr ""
+
+#: includes/PostType.php:96
+msgid "Search categories"
+msgstr ""
+
+#: includes/PostType.php:105
+msgid "Tag"
+msgstr ""
+
+#: includes/PostType.php:122
+msgid "Open proposals"
+msgstr ""
+
+#: includes/PostType.php:151
+#: includes/Render/EntryView.php:64
+msgid "History"
+msgstr ""
+
+#: includes/PostType.php:158
+#: includes/PostType.php:165
+msgid "Speech code"
+msgstr ""
+
+#: includes/PostType.php:160
+#: includes/PostType.php:167
+msgid "Optional. A language tag such as en-GB, fr or sw, so the Listen button reads words in this language when the browser has a voice for it."
+msgstr ""
+
+#: includes/Privacy.php:20
+#: includes/Privacy.php:24
+msgid "Dictionary suggestions and votes"
+msgstr ""
+
+#: includes/Privacy.php:30
+msgid "When you suggest a word, a meaning or a correction in the dictionary, we keep your suggestion with your account name so other members can vote on it. When you vote, we keep your vote and any note you add. Accepted suggestions become part of the dictionary, and the entry history shows who suggested each change. You can ask for your suggestions and votes to be exported or erased; erasing removes your name from them but keeps the dictionary text."
+msgstr ""
+
+#: includes/Privacy.php:53
+msgid "Dictionary suggestions"
+msgstr ""
+
+#: includes/Privacy.php:57
+#: includes/Render/AppView.php:348
+msgid "Kind"
+msgstr ""
+
+#: includes/Privacy.php:58
+#: includes/Render/AppView.php:336
+msgid "Status"
+msgstr ""
+
+#: includes/Privacy.php:59
+#: includes/Render/AppView.php:404
+#: includes/Render/ProposalView.php:194
+msgid "Suggested"
+msgstr ""
+
+#: includes/Privacy.php:60
+msgid "Reason"
+msgstr ""
+
+#: includes/Privacy.php:61
+msgid "Content"
+msgstr ""
+
+#: includes/Privacy.php:69
+msgid "Dictionary votes"
+msgstr ""
+
+#: includes/Privacy.php:73
+msgid "Vote"
+msgstr ""
+
+#: includes/Privacy.php:73
+#: includes/Render/ProposalView.php:137
+msgid "Accurate"
+msgstr ""
+
+#: includes/Privacy.php:73
+#: includes/Render/ProposalView.php:137
+msgid "Not accurate"
+msgstr ""
+
+#: includes/Privacy.php:74
+msgid "Note"
+msgstr ""
+
+#: includes/Privacy.php:75
+msgid "Date"
+msgstr ""
+
+#: includes/Privacy.php:107
+msgid "Dictionary suggestions were kept without the member's name, because accepted ones are part of the dictionary."
+msgstr ""
+
+#: includes/Proposals.php:51
+msgid "Choose what you are suggesting."
+msgstr ""
+
+#: includes/Proposals.php:67
+#: includes/Proposals.php:817
+msgid "This dictionary is not taking suggestions at the moment."
+msgstr ""
+
+#. translators: %d: how many open proposals a member may have
+#: includes/Proposals.php:72
+#: includes/Proposals.php:822
+msgid "You already have %d suggestions waiting for votes. Please wait for some of them to be settled."
+msgstr ""
+
+#: includes/Proposals.php:89
+#: includes/Rest.php:176
+msgid "Add at least one meaning."
+msgstr ""
+
+#: includes/Proposals.php:93
+msgid "That word is already in the dictionary. Open it to suggest a new meaning or a correction."
+msgstr ""
+
+#: includes/Proposals.php:102
+#: includes/Rest.php:158
+#: includes/Rest.php:201
+#: includes/Rest.php:263
+msgid "That entry could not be found."
+msgstr ""
+
+#: includes/Proposals.php:111
+msgid "Choose what to do with the meaning."
+msgstr ""
+
+#: includes/Proposals.php:119
+msgid "Write the meaning you want to add. It must differ from the meanings already listed."
+msgstr ""
+
+#: includes/Proposals.php:127
+msgid "That meaning is no longer in the entry. Reload the page and try again."
+msgstr ""
+
+#: includes/Proposals.php:135
+msgid "Write the corrected meaning."
+msgstr ""
+
+#: includes/Proposals.php:138
+msgid "The corrected meaning is the same as the current one."
+msgstr ""
+
+#: includes/Proposals.php:144
+msgid "Say why this meaning is wrong, so voters can judge."
+msgstr ""
+
+#: includes/Proposals.php:147
+msgid "This is the only meaning of the word. Suggest a better meaning instead of removing it."
+msgstr ""
+
+#: includes/Proposals.php:162
+msgid "Nothing was changed."
+msgstr ""
+
+#: includes/Proposals.php:165
+msgid "The word cannot be empty."
+msgstr ""
+
+#: includes/Proposals.php:176
+msgid "You already have a suggestion for this waiting for votes. Withdraw it first to suggest something else."
+msgstr ""
+
+#: includes/Proposals.php:204
+msgid "Your suggestion could not be saved. Please try again."
+msgstr ""
+
+#: includes/Proposals.php:414
+msgid "A former member"
+msgstr ""
+
+#: includes/Proposals.php:448
+#: includes/Rest.php:279
+msgid "That suggestion could not be found."
+msgstr ""
+
+#: includes/Proposals.php:451
+msgid "Voting on this suggestion has closed."
+msgstr ""
+
+#: includes/Proposals.php:454
+msgid "You cannot vote on your own suggestion."
+msgstr ""
+
+#: includes/Proposals.php:507
+msgid "Voted down by the community."
+msgstr ""
+
+#: includes/Proposals.php:549
+msgid "Passed the community vote. Waiting for an editor to merge it."
+msgstr ""
+
+#: includes/Proposals.php:570
+msgid "Accepted by an editor."
+msgstr ""
+
+#: includes/Proposals.php:571
+msgid "Led the vote when voting closed."
+msgstr ""
+
+#: includes/Proposals.php:572
+msgid "Accepted by community vote."
+msgstr ""
+
+#. translators: %s: member's name
+#: includes/Proposals.php:615
+msgid "New word suggested by %s"
+msgstr ""
+
+#: includes/Proposals.php:623
+msgid "An unpublished entry with this word already exists."
+msgstr ""
+
+#. translators: %s: member's name
+#: includes/Proposals.php:626
+msgid "Meanings suggested by %s"
+msgstr ""
+
+#: includes/Proposals.php:633
+#: includes/Proposals.php:635
+#: includes/Proposals.php:852
+msgid "The entry this suggestion changes no longer exists."
+msgstr ""
+
+#. translators: %s: member's name
+#: includes/Proposals.php:650
+msgid "Meaning added, suggested by %s"
+msgstr ""
+
+#: includes/Proposals.php:654
+msgid "The meaning it replaces has since been removed."
+msgstr ""
+
+#: includes/Proposals.php:661
+msgid "The meaning it replaces was changed after the suggestion was made."
+msgstr ""
+
+#. translators: %s: member's name
+#: includes/Proposals.php:670
+msgid "Meaning corrected, suggested by %s"
+msgstr ""
+
+#: includes/Proposals.php:674
+msgid "The meaning was changed after removal was suggested."
+msgstr ""
+
+#: includes/Proposals.php:677
+msgid "Removing it would leave the word with no meaning."
+msgstr ""
+
+#. translators: %s: member's name
+#: includes/Proposals.php:685
+msgid "Meaning removed, suggested by %s"
+msgstr ""
+
+#. translators: %s: name of a field, such as Pronunciation
+#: includes/Proposals.php:700
+msgid "%s was changed after the suggestion was made."
+msgstr ""
+
+#: includes/Proposals.php:710
+msgid "Another entry already uses this spelling in this language."
+msgstr ""
+
+#. translators: %s: member's name
+#: includes/Proposals.php:714
+msgid "Details corrected, suggested by %s"
+msgstr ""
+
+#: includes/Proposals.php:756
+msgid "Another suggestion for this won the vote."
+msgstr ""
+
+#: includes/Proposals.php:776
+msgid "Not accepted."
+msgstr ""
+
+#: includes/Proposals.php:788
+msgid "Only the person who made a suggestion can withdraw it."
+msgstr ""
+
+#: includes/Proposals.php:791
+msgid "This suggestion has already been settled."
+msgstr ""
+
+#: includes/Proposals.php:793
+msgid "Withdrawn by its author."
+msgstr ""
+
+#: includes/Proposals.php:809
+msgid "Only the person who made a suggestion can put it forward again."
+msgstr ""
+
+#: includes/Proposals.php:812
+msgid "This suggestion cannot be put forward again."
+msgstr ""
+
+#: includes/Proposals.php:833
+msgid "The entry already lists these meanings."
+msgstr ""
+
+#: includes/Proposals.php:842
+msgid "That meaning has already been removed."
+msgstr ""
+
+#: includes/Proposals.php:863
+msgid "The entry already reads this way."
+msgstr ""
+
+#: includes/Proposals.php:924
+msgid "Voting closed without enough support."
+msgstr ""
+
+#: includes/Proposals.php:988
+msgid "Correction"
+msgstr ""
+
+#: includes/Proposals.php:992
+msgid "Remove meaning"
+msgstr ""
+
+#: includes/Proposals.php:1000
+msgid "Voting"
+msgstr ""
+
+#: includes/Proposals.php:1001
+#: includes/Render/AppView.php:312
+msgid "Waiting for an editor"
+msgstr ""
+
+#: includes/Proposals.php:1003
+msgid "Not accepted"
+msgstr ""
+
+#: includes/Proposals.php:1004
+msgid "Withdrawn"
+msgstr ""
+
+#: includes/Proposals.php:1005
+msgid "Voting closed"
+msgstr ""
+
+#: includes/Proposals.php:1006
+msgid "Superseded"
+msgstr ""
+
+#. translators: %s: number of words
+#: includes/Render/AppView.php:81
+#: includes/Render/AppView.php:138
+#: includes/Render/AppView.php:191
+msgid "%s word"
+msgid_plural "%s words"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: number of languages
+#: includes/Render/AppView.php:84
+msgid "%s language"
+msgid_plural "%s languages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/AppView.php:88
+#: includes/Render/EntryView.php:50
+msgid "Breadcrumb"
+msgstr ""
+
+#: includes/Render/AppView.php:102
+#: includes/Render/AppView.php:149
+msgid "Sign in to suggest a word"
+msgstr ""
+
+#. translators: 1: number of dictionaries, 2: number of words
+#: includes/Render/AppView.php:136
+msgid "%1$s dictionary"
+msgid_plural "%1$s dictionaries"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of suggestions
+#: includes/Render/AppView.php:193
+msgid "%d suggestion open for votes"
+msgid_plural "%d suggestions open for votes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/AppView.php:194
+msgid "Open"
+msgstr ""
+
+#. translators: %s: letter
+#: includes/Render/AppView.php:227
+msgid "Words starting with %s"
+msgstr ""
+
+#: includes/Render/AppView.php:236
+msgid "No words here yet."
+msgstr ""
+
+#: includes/Render/AppView.php:259
+msgid "All categories"
+msgstr ""
+
+#: includes/Render/AppView.php:269
+msgid "Add this word"
+msgstr ""
+
+#: includes/Render/AppView.php:272
+msgid "Suggest this word"
+msgstr ""
+
+#. translators: %s: what was searched for
+#: includes/Render/AppView.php:285
+msgid "Results for \"%s\""
+msgstr ""
+
+#: includes/Render/AppView.php:287
+msgid "Clear search"
+msgstr ""
+
+#. translators: %s: what was searched for
+#: includes/Render/AppView.php:290
+msgid "\"%s\" is not in the dictionary yet."
+msgstr ""
+
+#: includes/Render/AppView.php:291
+msgid "Check the spelling, or try a shorter part of the word."
+msgstr ""
+
+#. translators: %s: what was searched for
+#: includes/Render/AppView.php:303
+msgid "No entry is spelt exactly \"%s\"."
+msgstr ""
+
+#: includes/Render/AppView.php:311
+msgid "Open for votes"
+msgstr ""
+
+#: includes/Render/AppView.php:313
+msgid "Recently settled"
+msgstr ""
+
+#: includes/Render/AppView.php:319
+msgid "Newest"
+msgstr ""
+
+#: includes/Render/AppView.php:320
+msgid "Most support"
+msgstr ""
+
+#: includes/Render/AppView.php:321
+msgid "Closing soon"
+msgstr ""
+
+#: includes/Render/AppView.php:328
+msgid "Each dictionary sets its own voting rules. Open a dictionary to see them on its review page."
+msgstr ""
+
+#: includes/Render/AppView.php:332
+msgid "Sign in to vote."
+msgstr ""
+
+#: includes/Render/AppView.php:354
+msgid "Order"
+msgstr ""
+
+#: includes/Render/AppView.php:371
+msgid "Nothing is waiting for votes right now."
+msgstr ""
+
+#: includes/Render/AppView.php:382
+msgid "Sign in to see your suggestions."
+msgstr ""
+
+#: includes/Render/AppView.php:382
+#: includes/Render/EntryView.php:245
+msgid "Sign in"
+msgstr ""
+
+#. translators: %d: number of accepted suggestions
+#: includes/Render/AppView.php:389
+msgid "%d of your suggestions has been accepted into the dictionary."
+msgid_plural "%d of your suggestions have been accepted into the dictionary."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/AppView.php:391
+msgid "You have not suggested anything yet."
+msgstr ""
+
+#: includes/Render/AppView.php:401
+msgid "No one has made a suggestion yet. Be the first."
+msgstr ""
+
+#: includes/Render/AppView.php:403
+msgid "Member"
+msgstr ""
+
+#: includes/Render/AppView.php:404
+msgid "Votes cast"
+msgstr ""
+
+#: includes/Render/EntryView.php:81
+msgid "No suggestions are waiting for votes on this word."
+msgstr ""
+
+#: includes/Render/EntryView.php:84
+msgid "Settled suggestions"
+msgstr ""
+
+#: includes/Render/EntryView.php:106
+msgid "Record or upload the pronunciation"
+msgstr ""
+
+#: includes/Render/EntryView.php:128
+msgid "Copy link"
+msgstr ""
+
+#: includes/Render/EntryView.php:131
+msgid "Edit"
+msgstr ""
+
+#: includes/Render/EntryView.php:149
+msgid "No meaning has been recorded yet."
+msgstr ""
+
+#. translators: %d: number of suggestions
+#: includes/Render/EntryView.php:160
+msgid "%d suggestion waiting for votes"
+msgid_plural "%d suggestions waiting for votes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/EntryView.php:166
+msgid "Flag as wrong"
+msgstr ""
+
+#. translators: %s: where the entry comes from
+#: includes/Render/EntryView.php:204
+msgid "Source: %s"
+msgstr ""
+
+#. translators: %s: date
+#: includes/Render/EntryView.php:209
+msgid "Updated %s"
+msgstr ""
+
+#. translators: %s: names
+#: includes/Render/EntryView.php:222
+msgid "Contributors: %s"
+msgstr ""
+
+#: includes/Render/EntryView.php:226
+msgid "Open the full entry"
+msgstr ""
+
+#: includes/Render/EntryView.php:237
+#: includes/Render/EntryView.php:243
+msgid "Know this word well?"
+msgstr ""
+
+#: includes/Render/EntryView.php:238
+msgid "Suggest another meaning or a correction. Members vote on its accuracy, and the suggestion that wins is merged into this entry."
+msgstr ""
+
+#: includes/Render/EntryView.php:244
+msgid "Sign in to suggest a meaning or a correction, and to vote on other suggestions."
+msgstr ""
+
+#: includes/Render/EntryView.php:259
+msgid "Listen to the recording"
+msgstr ""
+
+#: includes/Render/EntryView.php:259
+msgid "Listen"
+msgstr ""
+
+#: includes/Render/EntryView.php:259
+msgid "Listen to the word"
+msgstr ""
+
+#: includes/Render/EntryView.php:289
+msgid "Read the entry"
+msgstr ""
+
+#: includes/Render/HistoryView.php:21
+msgid "No changes have been recorded for this word yet."
+msgstr ""
+
+#. translators: 1: member's name, 2: how long ago
+#: includes/Render/HistoryView.php:36
+#: includes/Render/ProposalView.php:85
+msgid "a former member"
+msgstr ""
+
+#. translators: %s: editor's name
+#: includes/Render/HistoryView.php:49
+msgid "accepted by %s"
+msgstr ""
+
+#. translators: 1: votes for, 2: votes against
+#: includes/Render/HistoryView.php:51
+msgid "accepted by community vote, %1$d for and %2$d against"
+msgstr ""
+
+#. translators: 1: member's name, 2: how it was accepted
+#. translators: 1: member's name, 2: how long ago
+#: includes/Render/HistoryView.php:53
+#: includes/Render/ProposalView.php:85
+msgid "Suggested by %1$s, %2$s"
+msgstr ""
+
+#. translators: 1: member's name, 2: how it was accepted
+#: includes/Render/HistoryView.php:53
+msgid "a member"
+msgstr ""
+
+#. translators: %s: name
+#: includes/Render/HistoryView.php:56
+msgid "By %s"
+msgstr ""
+
+#: includes/Render/HistoryView.php:71
+#: includes/Render/ProposalView.php:193
+msgid "Current"
+msgstr ""
+
+#: includes/Render/HistoryView.php:77
+msgid "View the suggestion"
+msgstr ""
+
+#. translators: %d: number of changed fields
+#: includes/Render/HistoryView.php:92
+msgid "%d change"
+msgid_plural "%d changes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/HistoryView.php:99
+msgid "Restore this version"
+msgstr ""
+
+#. translators: %s: a span of time such as "3 days"
+#: includes/Render/Parts.php:41
+msgid "in %s"
+msgstr ""
+
+#. translators: %s: a span of time such as "3 days"
+#: includes/Render/Parts.php:41
+msgid "%s ago"
+msgstr ""
+
+#: includes/Render/Parts.php:65
+msgid "Search all dictionaries"
+msgstr ""
+
+#: includes/Render/Parts.php:65
+msgid "Search the dictionary"
+msgstr ""
+
+#: includes/Render/Parts.php:67
+msgid "Search every dictionary…"
+msgstr ""
+
+#: includes/Render/Parts.php:67
+msgid "Search a word or a meaning…"
+msgstr ""
+
+#: includes/Render/Parts.php:78
+msgid "Search"
+msgstr ""
+
+#: includes/Render/Parts.php:86
+msgid "Browse by letter"
+msgstr ""
+
+#. translators: 1: letter, 2: number of words
+#: includes/Render/Parts.php:95
+msgid "%1$s: %2$d word"
+msgid_plural "%1$s: %2$d words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/Parts.php:107
+msgid "Pages"
+msgstr ""
+
+#: includes/Render/Parts.php:110
+#: includes/Render/Parts.php:111
+msgid "Previous"
+msgstr ""
+
+#: includes/Render/Parts.php:127
+#: includes/Render/Parts.php:128
+msgid "Next"
+msgstr ""
+
+#: includes/Render/Parts.php:163
+msgid "Pending"
+msgstr ""
+
+#: includes/Render/Parts.php:193
+msgid "Browse"
+msgstr ""
+
+#: includes/Render/Parts.php:195
+msgid "Contributors"
+msgstr ""
+
+#: includes/Render/Parts.php:199
+msgid "My suggestions"
+msgstr ""
+
+#: includes/Render/Parts.php:201
+msgid "Dictionary sections"
+msgstr ""
+
+#: includes/Render/ProposalView.php:63
+msgid "Why"
+msgstr ""
+
+#. translators: %d: number of notes
+#: includes/Render/ProposalView.php:72
+msgid "%d note from a voter"
+msgid_plural "%d notes from voters"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of other suggestions
+#: includes/Render/ProposalView.php:89
+msgid "Competing with %d other suggestion"
+msgid_plural "Competing with %d other suggestions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/ProposalView.php:92
+msgid "See the merged change"
+msgstr ""
+
+#: includes/Render/ProposalView.php:101
+msgid "Suggest as an extra meaning"
+msgstr ""
+
+#: includes/Render/ProposalView.php:101
+msgid "Put forward again"
+msgstr ""
+
+#: includes/Render/ProposalView.php:109
+msgid "Delete suggestion"
+msgstr ""
+
+#. translators: %s: "in 3 days"
+#: includes/Render/ProposalView.php:123
+msgid "Voting closes %s"
+msgstr ""
+
+#. translators: 1: status, 2: date
+#: includes/Render/ProposalView.php:126
+msgid "%1$s %2$s"
+msgstr ""
+
+#: includes/Render/ProposalView.php:143
+msgid "Sign in to vote"
+msgstr ""
+
+#: includes/Render/ProposalView.php:145
+msgid "You cannot vote on your own suggestion"
+msgstr ""
+
+#. translators: %d: number of votes
+#: includes/Render/ProposalView.php:165
+msgid "Needs %d more \"accurate\" vote"
+msgid_plural "Needs %d more \"accurate\" votes"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of votes
+#: includes/Render/ProposalView.php:169
+msgid "Needs to be %d vote further ahead"
+msgid_plural "Needs to be %d votes further ahead"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Render/ProposalView.php:171
+msgid "Has enough support; waiting to lead its rivals"
+msgstr ""
+
+#: includes/Render/ProposalView.php:205
+msgid "This meaning has changed since the suggestion was made."
+msgstr ""
+
+#. translators: 1: votes needed, 2: lead needed
+#: includes/Render/ProposalView.php:259
+msgid "A suggestion is accepted when at least %1$d members vote that it is accurate and it is %2$d votes ahead."
+msgstr ""
+
+#. translators: %d: votes
+#: includes/Render/ProposalView.php:261
+msgid "It is declined when it falls %d votes behind."
+msgstr ""
+
+#. translators: %d: days
+#: includes/Render/ProposalView.php:265
+msgid "Voting stays open for %d days; then the suggestion that leads, if more members found it accurate than not, is accepted."
+msgstr ""
+
+#. translators: %d: days
+#: includes/Render/ProposalView.php:267
+msgid "Voting stays open for %d days."
+msgstr ""
+
+#: includes/Render/ProposalView.php:270
+msgid "An editor checks each accepted suggestion before it is merged."
+msgstr ""
+
+#: includes/Rest.php:70
+msgid "You cannot change this dictionary."
+msgstr ""
+
+#: includes/Rest.php:82
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: includes/Rest.php:143
+msgid "Not found."
+msgstr ""
+
+#: includes/Rest.php:173
+msgid "Another entry in this dictionary already uses this spelling in this language."
+msgstr ""
+
+#: includes/Rest.php:186
+msgid "Entry saved."
+msgstr ""
+
+#: includes/Rest.php:186
+msgid "Word added."
+msgstr ""
+
+#: includes/Rest.php:212
+msgid "This entry has no recording."
+msgstr ""
+
+#: includes/Rest.php:214
+msgid "Recording removed"
+msgstr ""
+
+#: includes/Rest.php:215
+msgid "Recording removed."
+msgstr ""
+
+#: includes/Rest.php:221
+msgid "Choose or record a sound first."
+msgstr ""
+
+#. translators: %d: size in megabytes
+#: includes/Rest.php:226
+msgid "The recording is too large. The limit is %d MB."
+msgstr ""
+
+#: includes/Rest.php:231
+msgid "That file is not a sound file. Use MP3, M4A, OGG, WAV or WebM."
+msgstr ""
+
+#. translators: %s: the word
+#: includes/Rest.php:243
+msgid "Pronunciation of %s"
+msgstr ""
+
+#: includes/Rest.php:252
+msgid "Recording replaced"
+msgstr ""
+
+#: includes/Rest.php:252
+msgid "Recording added"
+msgstr ""
+
+#: includes/Rest.php:255
+msgid "Recording saved."
+msgstr ""
+
+#: includes/Rest.php:269
+msgid "The entry could not be moved to the trash."
+msgstr ""
+
+#: includes/Rest.php:271
+msgid "Moved to the trash."
+msgstr ""
+
+#: includes/Rest.php:289
+msgid "Merged into the dictionary."
+msgstr ""
+
+#: includes/Rest.php:293
+msgid "Suggestion declined."
+msgstr ""
+
+#: includes/Rest.php:297
+msgid "Suggestion deleted."
+msgstr ""
+
+#: includes/Rest.php:302
+msgid "Unknown action."
+msgstr ""
+
+#: includes/Rest.php:319
+msgid "Version restored."
+msgstr ""
+
+#: includes/Rest.php:331
+msgid "Thank you. Your suggestion is open for votes."
+msgstr ""
+
+#: includes/Rest.php:353
+msgid "Suggestion withdrawn."
+msgstr ""
+
+#: includes/Rest.php:363
+msgid "Your suggestion is open for votes again."
+msgstr ""
+
+#: sepo-dictionary.php:25
+msgid "Sepo Dictionary needs PHP 8.1 or newer. The plugin is installed but not running."
+msgstr ""
+
+#: assets/js/blocks.js:24
+msgid "The full dictionary: search, A to Z, community review and contributors."
+msgstr ""
+
+#: assets/js/blocks.js:27
+msgid "glossary"
+msgstr ""
+
+#: assets/js/blocks.js:27
+msgid "words"
+msgstr ""
+
+#: assets/js/blocks.js:35
+msgid "Show one dictionary on this page."
+msgstr ""
+
+#: assets/js/blocks.js:36
+msgid "Show only one language's words."
+msgstr ""
+
+#: assets/js/blocks.js:52
+msgid "One entry from the dictionary."
+msgstr ""
+
+#: assets/js/blocks.js:61
+msgid "Look the word up in this dictionary first."
+msgstr ""
+
+#: assets/js/blocks.js:63
+msgid "Type the word to show."
+msgstr ""
+
+#: assets/js/blocks.js:74
+msgid "A word from the dictionary that changes every day."
+msgstr ""
