@@ -1,0 +1,120 @@
+/*
+ * Admin screens in the flat style used across the Sepo plugins: settings as
+ * cards, rounded fields and buttons, pill tabs and filters, list tables in a
+ * rounded frame, and notices on tinted backgrounds with no side stripe.
+ * Applies only on this plugin's own screens (body class sdict-skin), not in
+ * the post editor.
+ */
+body.sdict-skin {
+  --sk-brand: #1d475a;
+  --sk-line: #e3e6ea;
+  --sk-line-2: #cfd5dc;
+  --sk-panel: #f6f7f9;
+  --sk-ink: #1b1f24;
+  --sk-ink-2: #3f4854;
+  --sk-muted: #5f6b79;
+  --sk-hover: #eef1f4;
+  --sk-sel: #e8eff2;
+}
+
+/* Page heading */
+body.sdict-skin .wrap > h1, body.sdict-skin .wrap > .wp-heading-inline, body.sdict-skin .wrap > header h1 { font-size: 24px; font-weight: 700; line-height: 1.25; color: var(--sk-ink); }
+body.sdict-skin .wrap > h1:first-child, body.sdict-skin .wrap > .wp-heading-inline { margin-top: 10px; margin-bottom: 12px; }
+body.sdict-skin .wrap .wp-header-end { margin: 0 0 6px; border: 0; }
+
+/* Buttons */
+body.sdict-skin .wrap :is(.button, .button-secondary, .page-title-action) {
+  min-height: 36px; padding: 0 14px; line-height: 34px; border: 1px solid var(--sk-line-2); border-radius: 10px;
+  background: #fff; color: var(--sk-ink); font-weight: 600; box-shadow: none; text-shadow: none; vertical-align: middle;
+}
+body.sdict-skin .wrap .page-title-action { top: 0; margin-left: 10px; }
+body.sdict-skin .wrap :is(.button, .button-secondary, .page-title-action):hover { background: var(--sk-hover); border-color: var(--sk-line-2); color: var(--sk-ink); }
+body.sdict-skin .wrap :is(.button, .page-title-action):focus { outline: 2px solid var(--sk-brand); outline-offset: 1px; box-shadow: none; }
+body.sdict-skin .wrap .button.button-primary, body.sdict-skin .wrap .button-primary { background: var(--sk-brand); border-color: var(--sk-brand); color: #fff; }
+body.sdict-skin .wrap .button.button-primary:hover, body.sdict-skin .wrap .button-primary:hover { background: color-mix(in srgb, var(--sk-brand) 86%, #000); border-color: color-mix(in srgb, var(--sk-brand) 86%, #000); color: #fff; }
+body.sdict-skin .wrap .button.button-small, body.sdict-skin .wrap .button-small { min-height: 30px; padding: 0 10px; line-height: 28px; border-radius: 8px; font-size: 12.5px; }
+body.sdict-skin .wrap .button.button-large, body.sdict-skin .wrap .button-large { min-height: 42px; line-height: 40px; padding: 0 18px; }
+body.sdict-skin .wrap .button:disabled, body.sdict-skin .wrap .button.disabled { opacity: .55; }
+body.sdict-skin .wrap .button .dashicons { vertical-align: middle; margin-top: -2px; }
+
+/* Fields */
+body.sdict-skin .wrap :is(.form-table, .tablenav, .search-box, .postbox, .sk-field) :is(input[type=text], input[type=email], input[type=url], input[type=number], input[type=password], input[type=search], input[type=date], input[type=time], input[type=datetime-local], input[type=tel], select, textarea) {
+  min-height: 38px; padding: 6px 12px; border: 1px solid var(--sk-line-2); border-radius: 10px; background-color: #fff; color: var(--sk-ink); box-shadow: none; line-height: 1.4;
+}
+body.sdict-skin .wrap :is(.form-table, .tablenav, .search-box, .postbox, .sk-field) select { padding-right: 30px; }
+body.sdict-skin .wrap :is(.form-table, .postbox, .sk-field) input.small-text { min-width: 80px; padding: 6px 10px; }
+body.sdict-skin .wrap :is(.form-table, .postbox, .sk-field) input[size] { padding-left: 10px; padding-right: 10px; }
+body.sdict-skin .wrap :is(.form-table, .tablenav, .search-box, .postbox, .sk-field) :is(input, select, textarea):focus { border-color: var(--sk-brand); outline: 2px solid color-mix(in srgb, var(--sk-brand) 22%, transparent); outline-offset: 0; box-shadow: none; }
+body.sdict-skin .wrap :is(input[type=checkbox], input[type=radio]) { border-color: var(--sk-line-2); box-shadow: none; }
+body.sdict-skin .wrap input[type=checkbox] { border-radius: 5px; }
+body.sdict-skin .wrap :is(input[type=checkbox], input[type=radio]):focus { border-color: var(--sk-brand); box-shadow: 0 0 0 1px var(--sk-brand); }
+body.sdict-skin .wrap :is(input[type=checkbox], input[type=radio]):checked { border-color: var(--sk-brand); }
+body.sdict-skin .wrap input[type=color] { min-height: 38px; padding: 3px; border: 1px solid var(--sk-line-2); border-radius: 10px; }
+
+/* Settings: each table of settings is a card. */
+body.sdict-skin .wrap .form-table { margin: 8px 0 24px; border: 1px solid var(--sk-line); border-radius: 16px; border-collapse: separate; border-spacing: 0; background: #fff; }
+body.sdict-skin .wrap .form-table > tbody > tr > th { width: 230px; padding: 18px 12px 18px 24px; color: var(--sk-ink); font-weight: 600; }
+body.sdict-skin .wrap .form-table > tbody > tr > td { padding: 14px 24px 14px 12px; }
+body.sdict-skin .wrap .form-table > tbody > tr + tr > :is(th, td) { border-top: 1px solid var(--sk-line); }
+body.sdict-skin .wrap .form-table td p.description, body.sdict-skin .wrap .form-table td .description { margin-top: 6px; color: var(--sk-muted); font-size: 13px; }
+body.sdict-skin .wrap :is(form, .wrap) > h2, body.sdict-skin .wrap > h2 { margin: 28px 0 6px; font-size: 16px; font-weight: 650; color: var(--sk-ink); }
+body.sdict-skin .wrap :is(form, .wrap) > h2 + p, body.sdict-skin .wrap > h2 + p { margin: 0 0 8px; color: var(--sk-muted); }
+body.sdict-skin .wrap p.submit { margin-top: 6px; padding-top: 0; }
+@media (max-width: 782px) {
+  body.sdict-skin .wrap .form-table > tbody > tr > th { width: auto; padding: 16px 18px 2px; }
+  body.sdict-skin .wrap .form-table > tbody > tr > td { padding: 6px 18px 16px; }
+  body.sdict-skin .wrap .form-table > tbody > tr + tr > td { border-top: 0; }
+}
+
+/* List tables in a rounded frame, without stripes. */
+body.sdict-skin .wrap .wp-list-table, body.sdict-skin .wrap table.widefat:not(.form-table) { border: 1px solid var(--sk-line); border-radius: 16px; border-collapse: separate; border-spacing: 0; background: #fff; box-shadow: none; overflow: hidden; }
+body.sdict-skin .wrap :is(.wp-list-table, table.widefat) thead :is(th, td) { padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--sk-line); background: var(--sk-panel); color: var(--sk-ink-2); font-weight: 600; }
+body.sdict-skin .wrap :is(.wp-list-table, table.widefat) thead th a { color: var(--sk-ink-2); }
+body.sdict-skin .wrap :is(.wp-list-table, table.widefat) tfoot :is(th, td) { border-top: 1px solid var(--sk-line); background: var(--sk-panel); }
+body.sdict-skin .wrap :is(.wp-list-table, table.widefat) > tbody > tr > :is(th, td) { padding-top: 12px; padding-bottom: 12px; }
+body.sdict-skin .wrap :is(.wp-list-table, table.widefat) > tbody > tr + tr > :is(th, td) { border-top: 1px solid var(--sk-line); }
+body.sdict-skin .wrap :is(.wp-list-table, table.widefat).striped > tbody > tr { background: #fff; }
+body.sdict-skin .wrap .wp-list-table > tbody > tr:hover { background: color-mix(in srgb, var(--sk-panel) 70%, #fff); }
+body.sdict-skin .wrap .wp-list-table .row-title { color: var(--sk-ink); }
+body.sdict-skin .wrap .wp-list-table .check-column { padding-left: 10px; }
+:where(body.sdict-skin) .wp-list-table .row-actions { font-size: 12.5px; }
+body.sdict-skin .wrap .wp-list-table .no-items td { padding: 32px 16px; text-align: center; color: var(--sk-muted); }
+
+/* Filters above a list: pills. */
+body.sdict-skin .wrap .subsubsub { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 8px; padding: 4px; border-radius: 12px; background: #fff; border: 1px solid var(--sk-line); font-size: 0; }
+body.sdict-skin .wrap .subsubsub li { margin: 0; font-size: 0; }
+body.sdict-skin .wrap .subsubsub a { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 9px; color: var(--sk-ink-2); font-size: 13px; font-weight: 600; line-height: 1.3; text-decoration: none; }
+body.sdict-skin .wrap .subsubsub a:hover { background: var(--sk-hover); color: var(--sk-ink); }
+body.sdict-skin .wrap .subsubsub a.current { background: var(--sk-sel); color: var(--sk-brand); }
+body.sdict-skin .wrap .subsubsub a .count { color: var(--sk-muted); font-weight: 500; }
+body.sdict-skin .wrap .subsubsub a.current .count { color: inherit; }
+body.sdict-skin .wrap .search-box { display: flex; gap: 6px; align-items: center; margin: 6px 0 8px; }
+body.sdict-skin .wrap .tablenav { height: auto; min-height: 38px; margin: 8px 0; }
+body.sdict-skin .wrap .tablenav .actions { padding: 0 8px 0 0; display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; overflow: visible; }
+body.sdict-skin .wrap .tablenav .actions select { float: none; margin: 0; }
+body.sdict-skin .wrap .tablenav .tablenav-pages { margin: 0; }
+body.sdict-skin .wrap .tablenav-pages .button { min-width: 34px; min-height: 34px; padding: 0 8px; line-height: 32px; }
+body.sdict-skin .wrap .tablenav-pages .current-page { min-height: 34px; width: 48px; }
+
+/* Tabs: pills in a bar. */
+body.sdict-skin .wrap .nav-tab-wrapper, body.sdict-skin .wrap h2.nav-tab-wrapper { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 18px; padding: 5px; border: 1px solid var(--sk-line); border-radius: 14px; background: #fff; }
+body.sdict-skin .wrap .nav-tab { float: none; margin: 0; padding: 8px 14px; border: 0; border-radius: 9px; background: none; color: var(--sk-ink-2); font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+body.sdict-skin .wrap .nav-tab:hover { background: var(--sk-hover); color: var(--sk-ink); }
+body.sdict-skin .wrap .nav-tab.nav-tab-active, body.sdict-skin .wrap .nav-tab-active:hover { background: var(--sk-sel); color: var(--sk-brand); }
+body.sdict-skin .wrap .nav-tab:focus { outline: 2px solid var(--sk-brand); outline-offset: 1px; box-shadow: none; }
+
+/* Notices: tinted backgrounds, no side stripe. */
+body.sdict-skin :is(.notice, div.updated, div.error) { margin: 12px 0 16px; padding: 8px 16px; border: 0; border-radius: 12px; box-shadow: none; background: #eef1f4; color: var(--sk-ink); }
+body.sdict-skin :is(.notice-success, div.updated) { background: #e7f5ee; color: #0a5c36; }
+body.sdict-skin :is(.notice-error, div.error) { background: #fdecec; color: #8f1d1d; }
+body.sdict-skin .notice-warning { background: #fcf5e3; color: #6b4a00; }
+body.sdict-skin .notice-info { background: #e8f1fa; color: #0b4471; }
+body.sdict-skin :is(.notice, div.updated, div.error) a { color: inherit; font-weight: 600; }
+body.sdict-skin .notice-dismiss { top: 2px; }
+
+/* Boxes and small things */
+body.sdict-skin .wrap .postbox { border-color: var(--sk-line); border-radius: 14px; box-shadow: none; overflow: hidden; }
+body.sdict-skin .wrap .postbox .postbox-header { border-bottom-color: var(--sk-line); }
+body.sdict-skin .wrap .card { max-width: none; border-color: var(--sk-line); border-radius: 16px; box-shadow: none; padding: 18px 22px; }
+body.sdict-skin .wrap code { padding: 2px 6px; border-radius: 6px; background: var(--sk-panel); }
+body.sdict-skin .wrap hr { border: 0; border-top: 1px solid var(--sk-line); }
